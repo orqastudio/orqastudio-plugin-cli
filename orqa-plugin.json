@@ -1,0 +1,33 @@
+{
+  "name": "@orqastudio/plugin-cli",
+  "version": "0.1.0-dev",
+  "displayName": "CLI Tools",
+  "description": "Bundles the orqa CLI with skills for graph browsing, validation, plugin management, version management, and dev environment maintenance.",
+  "provides": {
+    "schemas": [],
+    "views": [],
+    "widgets": [],
+    "relationships": [],
+    "cliTools": [
+      {
+        "key": "orqa-validate",
+        "label": "Integrity Validator",
+        "icon": "shield-check",
+        "runtime": "node",
+        "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
+        "args": ["validate"],
+        "category": "integrity"
+      },
+      {
+        "key": "orqa-graph-stats",
+        "label": "Graph Statistics",
+        "icon": "bar-chart-3",
+        "runtime": "node",
+        "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
+        "args": ["graph", "--stats", "--json"],
+        "category": "custom"
+      }
+    ],
+    "hooks": []
+  }
+}
