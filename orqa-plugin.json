@@ -67,8 +67,8 @@
     "hooks": [
       {
         "event": "PreCommit",
-        "command": "node_modules/@orqastudio/cli/dist/cli.js validate .",
-        "description": "Run integrity validation before every commit"
+        "command": "node_modules/@orqastudio/cli/dist/cli.js validate . && node_modules/@orqastudio/cli/dist/cli.js version check",
+        "description": "Run integrity validation and version drift check before every commit"
       },
       {
         "event": "SessionStart",
