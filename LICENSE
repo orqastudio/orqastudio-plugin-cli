@@ -58,13 +58,17 @@ Additional Use Grant: You may make production use of the Licensed Work,
                       license or a license that provides equivalent
                       freedoms.
 
-                      (5) Evaluation, development, and testing — any
-                      use that is not production use, including
-                      evaluation, prototyping, development, and testing.
+                      (5) Plugin and extension development — creating
+                      and distributing plugins, connectors, or
+                      extensions that interoperate with the Licensed
+                      Work. This does not grant production use of the
+                      Licensed Work itself.
 
-                      (6) Plugin and extension development — creating
-                      plugins, connectors, or extensions that
-                      interoperate with the Licensed Work.
+                      Non-production use (evaluation, prototyping, and
+                      testing in non-production environments) is
+                      separately granted by the base BSL-1.1 terms
+                      below and does not require an Additional Use
+                      Grant.
 
                       All other production use requires a commercial
                       license from the Licensor.
