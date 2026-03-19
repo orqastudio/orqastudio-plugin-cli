@@ -67,8 +67,8 @@
     "hooks": [
       {
         "event": "PreCommit",
-        "command": "orqa validate . && orqa version check && orqa repo license && orqa repo readme",
-        "description": "Run all audits before every commit: integrity, version drift, license, README"
+        "command": "cd libs/cli && npx tsc && cd ../.. && orqa verify",
+        "description": "Rebuild CLI then run all audits before every commit"
       },
       {
         "event": "SessionStart",
