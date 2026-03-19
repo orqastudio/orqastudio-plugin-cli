@@ -1,0 +1,1 @@
+{"version":3,"file":"broken-links.d.ts","sourceRoot":"","sources":["../../../src/validator/checks/broken-links.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,gBAAgB,EAAE,YAAY,EAAE,MAAM,aAAa,CAAC;AAEjF,sDAAsD;AACtD,wBAAgB,gBAAgB,CAAC,KAAK,EAAE,aAAa,EAAE,IAAI,EAAE,YAAY,GAAG,gBAAgB,EAAE,CAkB7F"}

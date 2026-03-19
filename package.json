@@ -4,7 +4,7 @@
   "private": true,
   "description": "OrqaStudio CLI plugin — bundles the orqa binary with skills, documentation, and CLI tools for dev environment management.",
   "dependencies": {
-    "@orqastudio/cli": "0.1.0-dev",
-    "@orqastudio/types": "0.1.0-dev"
+    "@orqastudio/cli": "^0.1.0-dev",
+    "@orqastudio/types": "^0.1.0-dev"
   }
 }

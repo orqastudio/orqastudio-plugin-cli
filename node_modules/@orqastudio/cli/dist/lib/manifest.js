@@ -1,0 +1,54 @@
+/**
+ * Plugin manifest reader and validator.
+ *
+ * Reads `orqa-plugin.json` from a plugin directory and validates its structure.
+ */
+import * as fs from "node:fs";
+import * as path from "node:path";
+const MANIFEST_FILENAME = "orqa-plugin.json";
+/**
+ * Read a plugin manifest from a directory.
+ */
+export function readManifest(pluginDir) {
+    const manifestPath = path.join(pluginDir, MANIFEST_FILENAME);
+    if (!fs.existsSync(manifestPath)) {
+        throw new Error(`Plugin manifest not found: ${manifestPath}`);
+    }
+    const contents = fs.readFileSync(manifestPath, "utf-8");
+    return JSON.parse(contents);
+}
+/**
+ * Validate a plugin manifest, returning an array of error messages.
+ * Empty array means valid.
+ */
+export function validateManifest(manifest) {
+    const errors = [];
+    if (!manifest.name) {
+        errors.push("Missing required field: name");
+    }
+    else if (!/^@?[\w-]+\/[\w-]+$/.test(manifest.name) && !/^[\w-]+$/.test(manifest.name)) {
+        errors.push(`Invalid name format: ${manifest.name}`);
+    }
+    if (!manifest.version) {
+        errors.push("Missing required field: version");
+    }
+    if (!manifest.provides) {
+        errors.push("Missing required field: provides");
+    }
+    else {
+        if (!Array.isArray(manifest.provides.schemas)) {
+            errors.push("provides.schemas must be an array");
+        }
+        if (!Array.isArray(manifest.provides.views)) {
+            errors.push("provides.views must be an array");
+        }
+        if (!Array.isArray(manifest.provides.widgets)) {
+            errors.push("provides.widgets must be an array");
+        }
+        if (!Array.isArray(manifest.provides.relationships)) {
+            errors.push("provides.relationships must be an array");
+        }
+    }
+    return errors;
+}
+//# sourceMappingURL=manifest.js.map
