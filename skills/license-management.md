@@ -8,7 +8,8 @@ relationships:
   - target: DOC-CLI-a6cc3de5
     type: synchronised-with
   - target: DOC-4ed362fb
-    type: synchronised-with  - target: DOC-CLI-2c9bfdda
+    type: synchronised-with
+  - target: DOC-CLI-2c9bfdda
     type: synchronised-with
 
 ---

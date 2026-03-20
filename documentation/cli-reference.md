@@ -7,7 +7,8 @@ status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
   - target: SKILL-CLI-3198c8fb
-    type: synchronised-with  - target: SKILL-CLI-6ee6c91e
+    type: synchronised-with
+  - target: SKILL-CLI-6ee6c91e
     type: synchronised-with
   - target: SKILL-CLI-9466a88a
     type: synchronised-with

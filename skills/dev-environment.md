@@ -6,7 +6,8 @@ status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
   - target: DOC-CLI-65eb8303
-    type: synchronised-with  - target: DOC-CLI-2c9bfdda
+    type: synchronised-with
+  - target: DOC-CLI-2c9bfdda
     type: synchronised-with
 
 ---
