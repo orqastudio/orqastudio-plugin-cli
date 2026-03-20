@@ -230,6 +230,7 @@ function walkDir(dir: string): string[] {
 
   for (const entry of entries) {
     if (entry.name.startsWith(".") || entry.name.startsWith("_")) continue;
+    if (entry.name === "node_modules" || entry.name === "dist" || entry.name === "target") continue;
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...walkDir(full));

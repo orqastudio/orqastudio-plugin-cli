@@ -7,5 +7,7 @@
  */
 export { buildGraph } from "./graph.js";
 export { runChecks, runChecksWithSummary, buildCheckContext, ALL_CHECKS } from "./checker.js";
+export { applyFixes } from "./fixer.js";
+export type { FixResult, FixSummary } from "./fixer.js";
 export type { IntegrityFinding, IntegrityCategory, IntegritySeverity, ArtifactRef, ArtifactNode, ArtifactGraph, CheckContext, } from "./types.js";
 //# sourceMappingURL=index.d.ts.map

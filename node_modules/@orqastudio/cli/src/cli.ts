@@ -17,12 +17,13 @@
 
 import { runPluginCommand } from "./commands/plugin.js";
 import { runValidateCommand } from "./commands/validate.js";
+import { runIdCommand } from "./commands/id.js";
 import { runDebugCommand } from "./commands/debug.js";
 import { runGraphCommand } from "./commands/graph.js";
 import { runVersionCommand } from "./commands/version.js";
 import { runRepoCommand } from "./commands/repo.js";
 import { runInstallCommand } from "./commands/install.js";
-import { runVerifyCommand } from "./commands/verify.js";
+import { runAuditCommand } from "./commands/audit.js";
 import { runCheckCommand } from "./commands/check.js";
 import { runTestCommand } from "./commands/test.js";
 import { runDevCommand } from "./commands/dev.js";
@@ -35,10 +36,11 @@ Usage: orqa <command> [options]
 Commands:
   dev         Start the dev environment (Vite + Tauri)
   install     Full dev environment setup (prereqs, submodules, deps, link)
-  verify      Governance checks (integrity, version, license, readme)
+  audit       Full governance audit (integrity, version, license, readme)
   check       Code quality checks (lint, typecheck, format)
   test        Run test suites (rust, app)
-  validate    Integrity validation only
+  validate    Integrity validation only (--fix to auto-fix)
+  id          Artifact ID management (generate, check, migrate)
   plugin      Plugin management (install, uninstall, list, update, registry, create)
   graph       Browse the artifact graph
   version     Version management (sync, bump, check, show)
@@ -74,8 +76,9 @@ async function main(): Promise<void> {
 		case "install":
 			await runInstallCommand(commandArgs);
 			break;
-		case "verify":
-			await runVerifyCommand();
+		case "audit":
+		case "verify": // backwards compat alias
+			await runAuditCommand(commandArgs);
 			break;
 		case "check":
 			await runCheckCommand(commandArgs);
@@ -85,6 +88,9 @@ async function main(): Promise<void> {
 			break;
 		case "validate":
 			await runValidateCommand(commandArgs);
+			break;
+		case "id":
+			await runIdCommand(commandArgs);
 			break;
 		case "plugin":
 			await runPluginCommand(commandArgs);

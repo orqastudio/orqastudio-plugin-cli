@@ -7,4 +7,5 @@
  */
 export { buildGraph } from "./graph.js";
 export { runChecks, runChecksWithSummary, buildCheckContext, ALL_CHECKS } from "./checker.js";
+export { applyFixes } from "./fixer.js";
 //# sourceMappingURL=index.js.map

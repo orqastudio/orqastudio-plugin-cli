@@ -1,11 +1,12 @@
 /**
  * Validation command — uses the built-in integrity validator.
  *
- * orqa validate [path] [--json]
+ * orqa validate [path] [--json] [--fix]
  */
 
 import { buildGraph } from "../validator/graph.js";
 import { buildCheckContext, runChecksWithSummary } from "../validator/checker.js";
+import { applyFixes } from "../validator/fixer.js";
 
 const USAGE = `
 Usage: orqa validate [path] [options]
@@ -13,6 +14,7 @@ Usage: orqa validate [path] [options]
 Run integrity validation on the specified path (defaults to current directory).
 
 Options:
+  --fix               Auto-fix objectively fixable errors (e.g. missing inverses)
   --json              Output results as JSON
   --help, -h          Show this help message
 `.trim();
@@ -24,11 +26,30 @@ export async function runValidateCommand(args: string[]): Promise<void> {
 	}
 
 	const jsonOutput = args.includes("--json");
+	const autoFix = args.includes("--fix");
 	const targetPath = args.find((a) => !a.startsWith("--")) ?? process.cwd();
 
 	const graph = buildGraph({ projectRoot: targetPath });
 	const ctx = buildCheckContext(targetPath);
-	const summary = runChecksWithSummary(graph, ctx);
+	let summary = runChecksWithSummary(graph, ctx);
+
+	// Auto-fix pass
+	if (autoFix && summary.findings.some((f) => f.autoFixable)) {
+		const fixSummary = applyFixes(summary.findings, graph, ctx, targetPath);
+
+		if (fixSummary.applied > 0) {
+			if (!jsonOutput) {
+				console.log(`Auto-fixed ${fixSummary.applied} issue(s).`);
+				if (fixSummary.failed > 0) {
+					console.log(`  ${fixSummary.failed} fix(es) failed.`);
+				}
+			}
+
+			// Re-run checks on the fixed graph
+			const rebuiltGraph = buildGraph({ projectRoot: targetPath });
+			summary = runChecksWithSummary(rebuiltGraph, ctx);
+		}
+	}
 
 	if (jsonOutput) {
 		console.log(JSON.stringify(summary, null, 2));
