@@ -22,7 +22,7 @@ Falls back to spawning orqa-studio --lsp if the app is not running.
 Provides real-time diagnostics for:
 - Frontmatter schema validation
 - Hex ID format validation (AD-057)
-- Skill documentation constraint (AD-058)
+- Knowledge documentation constraint (AD-058)
 - Relationship target existence
 - Status validation
 - Duplicate frontmatter key detection

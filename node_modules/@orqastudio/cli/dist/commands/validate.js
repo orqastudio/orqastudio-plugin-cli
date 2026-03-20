@@ -6,10 +6,14 @@
 import { buildGraph } from "../validator/graph.js";
 import { buildCheckContext, runChecksWithSummary } from "../validator/checker.js";
 import { applyFixes } from "../validator/fixer.js";
+import { runValidateSchemaCommand } from "./validate-schema.js";
 const USAGE = `
-Usage: orqa validate [path] [options]
+Usage: orqa validate [subcommand|path] [options]
 
 Run integrity validation on the specified path (defaults to current directory).
+
+Subcommands:
+  schema              Validate project.json and plugin manifests against schemas
 
 Options:
   --fix               Auto-fix objectively fixable errors (e.g. missing inverses)
@@ -19,6 +23,11 @@ Options:
 export async function runValidateCommand(args) {
     if (args.includes("--help") || args.includes("-h")) {
         console.log(USAGE);
+        return;
+    }
+    // Subcommand dispatch
+    if (args[0] === "schema") {
+        await runValidateSchemaCommand(args.slice(1));
         return;
     }
     const jsonOutput = args.includes("--json");

@@ -390,8 +390,12 @@ export interface AliasMapping {
 
 /** Per-plugin configuration stored in project.json under `plugins.<name>`. */
 export interface PluginProjectConfig {
-	/** Whether this plugin is enabled. */
+	/** Whether this plugin has been installed into the project. */
+	installed: boolean;
+	/** Whether this plugin is active (schemas, relationships, views loaded). */
 	enabled: boolean;
+	/** Relative path to the plugin directory (from project root). */
+	path: string;
 	/** Per-relationship overrides (key → enabled). */
 	relationships?: Record<string, boolean>;
 	/** Schema key aliases — resolves conflicts when multiple plugins register the same key. */

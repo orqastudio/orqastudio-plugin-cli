@@ -76,7 +76,7 @@ function inferType(relPath, registry) {
 }
 /**
  * Infer artifact type from an artifact ID prefix using core.json.
- * E.g. "DOC-036" → "doc", "SKILL-011" → "skill", "EPIC-001" → "epic".
+ * E.g. "DOC-036" → "doc", "KNOW-011" → "knowledge", "EPIC-001" → "epic".
  * Falls back to "unknown" if no match.
  */
 function inferTypeFromId(id) {

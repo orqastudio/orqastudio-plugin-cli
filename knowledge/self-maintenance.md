@@ -1,6 +1,6 @@
 ---
-id: SKILL-CLI-6391d2a8
-type: skill
+id: KNOW-CLI-6391d2a8
+type: knowledge
 name: CLI Plugin Self-Maintenance
 status: active
 plugin: "@orqastudio/plugin-cli"

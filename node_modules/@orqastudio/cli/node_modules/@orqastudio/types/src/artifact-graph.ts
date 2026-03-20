@@ -70,7 +70,7 @@ export const ARTIFACT_TYPES = [
     "lesson",
     "rule",
     "agent",
-    "skill",
+    "knowledge",
     "hook",
     "pillar",
     "doc",

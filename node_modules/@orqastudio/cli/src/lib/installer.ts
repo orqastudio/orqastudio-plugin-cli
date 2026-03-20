@@ -3,6 +3,13 @@
  *
  * Plugins are distributed as .tar.gz archives from GitHub Releases.
  * Local path installs are also supported for development.
+ *
+ * Post-install setup (runPostInstallSetup):
+ * - Creates .claude/agents → .orqa/process/agents/ symlink
+ * - Creates .claude/rules → .orqa/process/rules/ symlink
+ * - Aggregates lspServers/mcpServers from all plugin manifests → .lsp.json/.mcp.json
+ * NOTE: .claude/CLAUDE.md is NOT managed here — it is a Claude Code project artifact
+ * maintained directly, not derived from any source file.
  */
 
 import * as fs from "node:fs";
@@ -150,6 +157,15 @@ async function installFromLocalPath(source: string, pluginsDirectory: string): P
 
 	fs.cpSync(source, targetDir, { recursive: true });
 
+	// Run post-install setup for connector plugins (those that declare lspServers or mcpServers)
+	const provides = manifest.provides as {
+		lspServers?: Record<string, unknown>;
+		mcpServers?: Record<string, unknown>;
+	};
+	if (provides.lspServers || provides.mcpServers) {
+		runPostInstallSetup(projectRoot, targetDir);
+	}
+
 	return {
 		name: manifest.name,
 		version: manifest.version,
@@ -219,6 +235,15 @@ async function installFromGitHub(
 		writeLockfile(projectRoot, lockfile);
 
 		const collisions = detectCollisions(manifest, projectRoot);
+
+		// Run post-install setup for connector plugins (those that declare lspServers or mcpServers)
+		const provides = manifest.provides as {
+			lspServers?: Record<string, unknown>;
+			mcpServers?: Record<string, unknown>;
+		};
+		if (provides.lspServers || provides.mcpServers) {
+			runPostInstallSetup(projectRoot, pluginDir);
+		}
 
 		console.log(`Installed ${manifest.name}@${manifest.version}`);
 
@@ -320,4 +345,167 @@ export function listInstalledPlugins(projectRoot?: string): InstallResult[] {
 	}
 
 	return results;
+}
+
+export interface PostInstallResult {
+	symlinkAgents: "created" | "skipped" | "exists";
+	symlinkRules: "created" | "skipped" | "exists";
+	lspCount: number;
+	mcpCount: number;
+}
+
+/**
+ * Run post-install setup for the Claude Code connector:
+ * 1. Create .claude/agents → .orqa/process/agents/ symlink
+ * 2. Create .claude/rules → .orqa/process/rules/ symlink
+ * 3. Aggregate lspServers/mcpServers from all plugins/connectors → .lsp.json/.mcp.json
+ *    written into the connector's plugin directory.
+ *
+ * Called automatically by installPlugin when the installed plugin is the Claude Code connector.
+ * Can also be called standalone to repair a broken install.
+ *
+ * NOTE: .claude/CLAUDE.md is NOT managed here — it is a Claude Code project artifact
+ * maintained directly.
+ */
+export function runPostInstallSetup(
+	projectRoot: string,
+	connectorPluginDir: string,
+): PostInstallResult {
+	const orqaDir = path.join(projectRoot, ".orqa");
+	const appOrqaDir = path.join(projectRoot, "app", ".orqa");
+	const claudeDir = path.join(projectRoot, ".claude");
+
+	// Ensure .claude/ exists
+	if (!fs.existsSync(claudeDir)) {
+		fs.mkdirSync(claudeDir, { recursive: true });
+	}
+
+	// Agents live in app/.orqa/process/agents/ (OrqaStudio monorepo structure).
+	// Fall back to .orqa/process/agents/ for non-monorepo projects.
+	const agentsSource = fs.existsSync(path.join(appOrqaDir, "process", "agents"))
+		? path.join(appOrqaDir, "process", "agents")
+		: path.join(orqaDir, "process", "agents");
+
+	const symlinkAgents = setupSymlink(
+		path.join(claudeDir, "agents"),
+		agentsSource,
+	);
+
+	const symlinkRules = setupSymlink(
+		path.join(claudeDir, "rules"),
+		path.join(orqaDir, "process", "rules"),
+	);
+
+	const { lsp, mcp } = aggregateServers(projectRoot);
+
+	const lspPath = path.join(connectorPluginDir, ".lsp.json");
+	const mcpPath = path.join(connectorPluginDir, ".mcp.json");
+
+	const newLsp = JSON.stringify(lsp, null, 2);
+	const existingLsp = fs.existsSync(lspPath) ? fs.readFileSync(lspPath, "utf-8") : "";
+	if (newLsp !== existingLsp) {
+		fs.writeFileSync(lspPath, newLsp);
+	}
+
+	const newMcp = JSON.stringify({ mcpServers: mcp }, null, 2);
+	const existingMcp = fs.existsSync(mcpPath) ? fs.readFileSync(mcpPath, "utf-8") : "";
+	if (newMcp !== existingMcp) {
+		fs.writeFileSync(mcpPath, newMcp);
+	}
+
+	return {
+		symlinkAgents,
+		symlinkRules,
+		lspCount: Object.keys(lsp).length,
+		mcpCount: Object.keys(mcp).length,
+	};
+}
+
+/**
+ * Create a symlink from linkPath → targetPath.
+ * - "created": symlink was created
+ * - "skipped": target does not exist, nothing to link
+ * - "exists": already a symlink (correct or not — caller can verify if needed)
+ */
+function setupSymlink(
+	linkPath: string,
+	targetPath: string,
+): "created" | "skipped" | "exists" {
+	if (!fs.existsSync(targetPath)) {
+		return "skipped";
+	}
+
+	// lstatSync sees symlinks without following them
+	try {
+		const stat = fs.lstatSync(linkPath);
+		if (stat.isSymbolicLink() || stat.isDirectory() || stat.isFile()) {
+			return "exists";
+		}
+	} catch {
+		// Path does not exist — fall through to create
+	}
+
+	fs.symlinkSync(targetPath, linkPath, "junction");
+	return "created";
+}
+
+interface ServerMap {
+	[name: string]: unknown;
+}
+
+/**
+ * Scan plugins/ and connectors/ directories for orqa-plugin.json manifests
+ * and aggregate their lspServers/mcpServers declarations.
+ * First declaration wins (plugins/ is scanned before connectors/).
+ */
+function aggregateServers(projectRoot: string): { lsp: ServerMap; mcp: ServerMap } {
+	const lsp: ServerMap = {};
+	const mcp: ServerMap = {};
+
+	const scanDirs = [
+		path.join(projectRoot, "plugins"),
+		path.join(projectRoot, "connectors"),
+	];
+
+	for (const scanDir of scanDirs) {
+		if (!fs.existsSync(scanDir)) continue;
+
+		for (const entry of fs.readdirSync(scanDir, { withFileTypes: true })) {
+			if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+
+			const manifestPath = path.join(scanDir, entry.name, "orqa-plugin.json");
+			if (!fs.existsSync(manifestPath)) continue;
+
+			try {
+				const raw = fs.readFileSync(manifestPath, "utf-8");
+				const manifest = JSON.parse(raw) as {
+					provides?: {
+						lspServers?: Record<string, unknown>;
+						mcpServers?: Record<string, unknown>;
+					};
+				};
+				const provides = manifest.provides ?? {};
+
+				if (provides.lspServers && typeof provides.lspServers === "object") {
+					for (const [name, config] of Object.entries(provides.lspServers)) {
+						if (!(name in lsp)) {
+							lsp[name] = config;
+						}
+					}
+				}
+
+				if (provides.mcpServers && typeof provides.mcpServers === "object") {
+					for (const [name, config] of Object.entries(provides.mcpServers)) {
+						if (!(name in mcp)) {
+							mcp[name] = config;
+						}
+					}
+				}
+			} catch {
+				// Skip invalid manifests
+			}
+		}
+	}
+
+	return { lsp, mcp };
 }

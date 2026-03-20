@@ -10,7 +10,7 @@
     { "key": "decision", "label": "Decision", "icon": "scale", "idPrefix": "AD" },
     { "key": "rule", "label": "Rule", "icon": "shield", "idPrefix": "RULE" },
     { "key": "lesson", "label": "Lesson", "icon": "book-open", "idPrefix": "IMPL" },
-    { "key": "skill", "label": "Skill", "icon": "zap", "idPrefix": "SKILL" },
+    { "key": "knowledge", "label": "Knowledge", "icon": "zap", "idPrefix": "KNOW" },
     { "key": "agent", "label": "Agent", "icon": "bot", "idPrefix": "AGENT" },
     { "key": "doc", "label": "Document", "icon": "file-text", "idPrefix": "DOC" },
     { "key": "pivot", "label": "Pivot", "icon": "refresh-cw", "idPrefix": "PIVOT" },
@@ -180,8 +180,8 @@
       "label": "Employs",
       "inverseLabel": "Employed By",
       "from": ["agent"],
-      "to": ["skill"],
-      "description": "Agent employs a skill capability",
+      "to": ["knowledge"],
+      "description": "Agent employs a knowledge capability",
       "semantic": "observation",
       "constraints": {
         "required": true,
@@ -203,14 +203,14 @@
       "inverse": "synchronised-with",
       "label": "Synchronised With",
       "inverseLabel": "Synchronised With",
-      "from": ["skill", "doc"],
-      "to": ["skill", "doc"],
+      "from": ["knowledge", "doc"],
+      "to": ["knowledge", "doc"],
       "description": "Paired content kept in sync — agent-facing and human-facing versions",
       "semantic": "synchronisation",
       "constraints": {
-        "requiredWhenSourceType": "skill",
+        "requiredWhenSourceType": "knowledge",
         "minCount": 1,
-        "description": "Every skill must have at least one synchronised-with relationship to a human-facing doc (AD-058)"
+        "description": "Every knowledge artifact must have at least one synchronised-with relationship to a human-facing doc (AD-058)"
       }
     },
     {

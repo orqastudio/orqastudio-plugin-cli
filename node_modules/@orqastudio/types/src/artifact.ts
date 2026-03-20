@@ -26,7 +26,7 @@ export interface ArtifactSummary {
 	file_modified_at: string | null;
 }
 
-export type ArtifactType = "agent" | "rule" | "skill" | "hook" | "doc";
+export type ArtifactType = "agent" | "rule" | "knowledge" | "hook" | "doc";
 export type ComplianceStatus = "compliant" | "non_compliant" | "unknown" | "error";
 
 export interface ArtifactRelationship {

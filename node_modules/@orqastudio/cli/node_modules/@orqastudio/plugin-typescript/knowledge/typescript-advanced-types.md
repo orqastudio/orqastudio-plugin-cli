@@ -1,5 +1,5 @@
 ---
-id: SKILL-49cee771
+id: KNOW-49cee771
 title: TypeScript Advanced Types
 description: "Master TypeScript's advanced type system including generics, conditional types, mapped types, template literals, and utility types for building type-safe applications. Use when implementing complex type logic, creating reusable type utilities, or ensuring compile-time type safety in TypeScript projects."
 status: active

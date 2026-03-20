@@ -1,6 +1,6 @@
 ---
-id: SKILL-CLI-4cc73a12
-type: skill
+id: KNOW-CLI-4cc73a12
+type: knowledge
 name: README Standards
 status: active
 plugin: "@orqastudio/plugin-cli"

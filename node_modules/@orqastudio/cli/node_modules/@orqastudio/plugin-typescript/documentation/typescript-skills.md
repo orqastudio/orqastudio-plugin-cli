@@ -8,7 +8,7 @@ created: 2026-03-19
 updated: 2026-03-19
 category: plugin
 relationships:
-  - target: SKILL-49cee771
+  - target: KNOW-49cee771
     type: synchronised-with
 
 ---

@@ -6,7 +6,7 @@ category: how-to
 created: 2026-03-18
 updated: 2026-03-18
 relationships:
-  - target: SKILL-CLI-7b5c1bda
+  - target: KNOW-CLI-7b5c1bda
     type: synchronised-with
 ---
 

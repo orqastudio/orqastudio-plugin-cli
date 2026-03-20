@@ -1,6 +1,6 @@
 ---
-id: SKILL-CLI-6ee6c91e
-type: skill
+id: KNOW-CLI-6ee6c91e
+type: knowledge
 name: Dev Environment Management
 status: active
 plugin: "@orqastudio/plugin-cli"

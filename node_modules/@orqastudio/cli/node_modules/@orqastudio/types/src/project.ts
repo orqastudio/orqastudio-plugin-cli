@@ -94,7 +94,7 @@ export const DEFAULT_ARTIFACT_LINK_COLORS: Record<string, string> = {
 	AD: "#8b5cf6",
 	IDEA: "#c084fc",
 	IMPL: "#67e8f9",
-	SKILL: "#2dd4bf",
+	KNOW: "#2dd4bf",
 	PILLAR: "#818cf8",
 	RES: "#6366f1",
 	MS: "#38bdf8",
@@ -128,6 +128,8 @@ export interface ProjectSettings {
 	name: string;
 	/** When true, this project aggregates child projects into a single graph. */
 	organisation?: boolean;
+	/** When true, this project is dogfooding — the app being built is the app being used. */
+	dogfood?: boolean;
 	/** Child project paths (relative to project root or absolute). */
 	projects?: ChildProjectConfig[];
 	description: string | null;
@@ -154,7 +156,7 @@ export interface GovernanceCounts {
 	docs: number;
 	agents: number;
 	rules: number;
-	skills: number;
+	knowledge: number;
 	hooks: number;
 	has_claude_config: boolean;
 }
@@ -269,7 +271,7 @@ export const PLATFORM_NAVIGATION: readonly NavigationItem[] = [
 			{ key: "decisions", type: "builtin", icon: "scale" },
 			{ key: "rules", type: "builtin", icon: "shield" },
 			{ key: "lessons", type: "builtin", icon: "book-open" },
-			{ key: "skills", type: "builtin", icon: "zap" },
+			{ key: "knowledge", type: "builtin", icon: "zap" },
 			{ key: "agents", type: "builtin", icon: "bot" },
 		],
 	},

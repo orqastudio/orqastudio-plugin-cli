@@ -5,8 +5,8 @@
   "description": "Base TypeScript development infrastructure — tsconfig presets, ESLint configs, and config composition for plugin extensions.",
   "category": "coding-standards",
   "provides": {
-    "skills": [
-      { "key": "typescript-advanced-types", "id": "SKILL-TS-001", "label": "TypeScript Advanced Types" }
+    "knowledge": [
+      { "key": "typescript-advanced-types", "id": "KNOW-TS-001", "label": "TypeScript Advanced Types" }
     ],
     "lspServers": {
       "typescript": {

@@ -81,7 +81,7 @@ function inferType(filePath) {
     // Look for type clues in the path: .orqa/delivery/epics/ → "epic"
     for (const part of parts) {
         const singular = part.replace(/s$/, "");
-        if (["epic", "task", "milestone", "idea", "decision", "rule", "lesson", "skill", "agent", "pillar", "persona", "research", "wireframe"].includes(singular)) {
+        if (["epic", "task", "milestone", "idea", "decision", "rule", "lesson", "knowledge", "agent", "pillar", "persona", "research", "wireframe"].includes(singular)) {
             return singular;
         }
     }

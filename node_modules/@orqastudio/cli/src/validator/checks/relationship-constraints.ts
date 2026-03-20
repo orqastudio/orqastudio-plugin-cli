@@ -9,7 +9,7 @@ import type { ArtifactGraph, IntegrityFinding, CheckContext } from "../types.js"
  * must be in `to`, target must be in `from`.
  *
  * Both directions are checked. An inverse key like `informed-by` on a task
- * pointing to a skill is just as wrong as `informs` on a skill pointing
+ * pointing to a knowledge artifact is just as wrong as `informs` on a knowledge artifact pointing
  * to a task — the schema constrains both ends.
  */
 export function checkRelationshipConstraints(

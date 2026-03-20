@@ -6,19 +6,19 @@ category: reference
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: SKILL-CLI-3198c8fb
+  - target: KNOW-CLI-3198c8fb
     type: synchronised-with
-  - target: SKILL-CLI-6ee6c91e
+  - target: KNOW-CLI-6ee6c91e
     type: synchronised-with
-  - target: SKILL-CLI-9466a88a
+  - target: KNOW-CLI-9466a88a
     type: synchronised-with
-  - target: SKILL-CLI-9e1a2f6a
+  - target: KNOW-CLI-9e1a2f6a
     type: synchronised-with
-  - target: SKILL-CLI-4cc73a12
+  - target: KNOW-CLI-4cc73a12
     type: synchronised-with
-  - target: SKILL-CLI-6391d2a8
+  - target: KNOW-CLI-6391d2a8
     type: synchronised-with
-  - target: SKILL-CLI-7b5c1bda
+  - target: KNOW-CLI-7b5c1bda
     type: synchronised-with
 
 ---

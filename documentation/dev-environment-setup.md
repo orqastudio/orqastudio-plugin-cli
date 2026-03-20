@@ -6,7 +6,7 @@ category: onboarding
 created: 2026-03-18
 updated: 2026-03-18
 relationships:
-  - target: SKILL-CLI-6ee6c91e
+  - target: KNOW-CLI-6ee6c91e
     type: synchronised-with
 ---
 

@@ -1,6 +1,6 @@
 ---
-id: SKILL-CLI-9466a88a
-type: skill
+id: KNOW-CLI-9466a88a
+type: knowledge
 name: License Management
 status: active
 plugin: "@orqastudio/plugin-cli"

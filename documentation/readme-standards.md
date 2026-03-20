@@ -6,7 +6,7 @@ category: reference
 created: 2026-03-18
 updated: 2026-03-18
 relationships:
-  - target: SKILL-CLI-4cc73a12
+  - target: KNOW-CLI-4cc73a12
     type: synchronised-with
 ---
 
