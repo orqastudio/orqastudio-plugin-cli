@@ -3,6 +3,7 @@
   "version": "0.1.0-dev",
   "displayName": "CLI Tools",
   "description": "Bundles the orqa CLI with skills for graph browsing, validation, plugin management, version management, license/readme auditing, and dev environment maintenance.",
+  "category": "tooling",
   "provides": {
     "schemas": [],
     "views": [],
