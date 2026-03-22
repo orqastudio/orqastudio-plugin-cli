@@ -29,6 +29,7 @@ import { runAuditCommand } from "./commands/audit.js";
 import { runCheckCommand } from "./commands/check.js";
 import { runTestCommand } from "./commands/test.js";
 import { runDevCommand } from "./commands/dev.js";
+import { runLinkCommand } from "./commands/link.js";
 
 const USAGE = `
 OrqaStudio CLI v0.1.0-dev
@@ -49,6 +50,7 @@ Commands:
   graph       Browse the artifact graph
   version     Version management (sync, bump, check, show)
   repo        Repo maintenance (license audit, readme audit)
+  link        Cross-platform symlink management (create, verify, status)
 
 Options:
   --help, -h     Show this help message
@@ -116,6 +118,9 @@ async function main(): Promise<void> {
 			break;
 		case "debug":
 			await runDebugCommand(commandArgs);
+			break;
+		case "link":
+			await runLinkCommand(commandArgs);
 			break;
 		default:
 			console.error(`Unknown command: ${command}`);

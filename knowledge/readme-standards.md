@@ -1,13 +1,13 @@
 ---
-id: KNOW-CLI-4cc73a12
+id: KNOW-4cc73a12
 type: knowledge
 name: README Standards
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-97ea2f47
+  - target: DOC-97ea2f47
     type: synchronised-with
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 
 ---

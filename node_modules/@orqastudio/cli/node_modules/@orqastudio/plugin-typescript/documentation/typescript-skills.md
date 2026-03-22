@@ -1,5 +1,5 @@
 ---
-id: DOC-TS-e4f5a6b7
+id: DOC-e4f5a6b7
 type: doc
 title: "TypeScript Plugin Skills"
 description: "Reference for TypeScript plugin skills — advanced type patterns for OrqaStudio development."

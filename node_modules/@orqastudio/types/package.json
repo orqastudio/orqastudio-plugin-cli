@@ -25,14 +25,16 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "generate": "node scripts/generate-types.mjs"
   },
   "files": [
     "dist/"
   ],
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^5.7.0"
   },
   "engines": {
     "node": ">=20"

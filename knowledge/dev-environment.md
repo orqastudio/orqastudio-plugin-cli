@@ -1,13 +1,13 @@
 ---
-id: KNOW-CLI-6ee6c91e
+id: KNOW-6ee6c91e
 type: knowledge
 name: Dev Environment Management
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-65eb8303
+  - target: DOC-65eb8303
     type: synchronised-with
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 
 ---

@@ -15,6 +15,7 @@ import { checkVocabularyCompliance } from "./checks/vocabulary-compliance.js";
 import { checkRequiredRelationships } from "./checks/required-relationships.js";
 import { checkCircularDependencies } from "./checks/circular-dependencies.js";
 import { checkBodyTemplates } from "./checks/body-templates.js";
+import { checkFrontmatterRequired } from "./checks/frontmatter-required.js";
 /**
  * All check functions — purely schema-driven.
  *
@@ -25,6 +26,7 @@ import { checkBodyTemplates } from "./checks/body-templates.js";
  * 5. RequiredRelationship — constraints.required + minCount from schema
  * 6. CircularDependency — cycles in dependency-semantic edges
  * 7. BodyTemplate — required body sections from schema.json files
+ * 8. FrontmatterRequired — required frontmatter fields from plugin schemas
  */
 export const ALL_CHECKS = [
     checkBrokenLinks,
@@ -34,7 +36,71 @@ export const ALL_CHECKS = [
     checkRequiredRelationships,
     checkCircularDependencies,
     checkBodyTemplates,
+    checkFrontmatterRequired,
 ];
+/**
+ * Load artifact schema definitions from plugin orqa-plugin.json files.
+ * Returns a map from artifact type key → required frontmatter field names.
+ * Scans plugins/ and connectors/ directories.
+ */
+function loadPluginFrontmatterRequirements(projectRoot) {
+    const requirements = new Map();
+    for (const container of ["plugins", "connectors"]) {
+        const containerDir = join(projectRoot, container);
+        let entries;
+        try {
+            entries = readdirSync(containerDir, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        for (const entry of entries) {
+            if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules")
+                continue;
+            try {
+                const manifestPath = join(containerDir, entry.name, "orqa-plugin.json");
+                const raw = readFileSync(manifestPath, "utf-8");
+                const manifest = JSON.parse(raw);
+                const provides = manifest["provides"];
+                if (!provides)
+                    continue;
+                const schemas = provides["schemas"];
+                if (!Array.isArray(schemas))
+                    continue;
+                for (const schema of schemas) {
+                    const s = schema;
+                    const key = typeof s["key"] === "string" ? s["key"] : null;
+                    if (!key)
+                        continue;
+                    const fm = s["frontmatter"];
+                    if (!fm)
+                        continue;
+                    const required = fm["required"];
+                    if (!Array.isArray(required))
+                        continue;
+                    const fields = required.filter((f) => typeof f === "string");
+                    if (fields.length === 0)
+                        continue;
+                    // Union if multiple plugins define schemas for the same type
+                    const existing = requirements.get(key);
+                    if (existing) {
+                        for (const f of fields) {
+                            if (!existing.includes(f))
+                                existing.push(f);
+                        }
+                    }
+                    else {
+                        requirements.set(key, [...fields]);
+                    }
+                }
+            }
+            catch {
+                continue;
+            }
+        }
+    }
+    return requirements;
+}
 /**
  * Load relationship definitions from plugin orqa-plugin.json files.
  * Scans plugins/ and connectors/ directories.
@@ -102,6 +168,8 @@ export function buildCheckContext(projectRoot) {
     for (const [k, v] of Object.entries(PLATFORM_CONFIG.semantics)) {
         allSemantics[k] = { description: v.description, keys: [...v.keys] };
     }
+    // Load plugin frontmatter requirements
+    const frontmatterRequirements = loadPluginFrontmatterRequirements(projectRoot);
     // Load plugin relationships — extend existing definitions or add new ones.
     // When a plugin declares a relationship key that already exists (e.g. extending
     // core's `merged-into` to also allow research→research), the from/to arrays
@@ -221,6 +289,7 @@ export function buildCheckContext(projectRoot) {
         semantics: allSemantics,
         deliveryTypes,
         relationships: allRelationships,
+        frontmatterRequirements,
     };
 }
 /** Run all integrity checks and return findings. */

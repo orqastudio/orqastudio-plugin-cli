@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orqastudio.dev/schemas/metrics.json",
+  "title": "Metrics Types",
+  "description": "Graph health metrics and traceability types computed by the Rust backend from the artifact graph data structure.",
+
+  "$defs": {
+    "GraphHealth": {
+      "title": "GraphHealth",
+      "description": "Graph-theoretic health metrics for the artifact graph. All values are computed purely in Rust from the graph data structure.",
+      "type": "object",
+      "required": [
+        "total_nodes",
+        "total_edges",
+        "component_count",
+        "largest_component_ratio",
+        "orphan_count",
+        "orphan_percentage",
+        "avg_degree",
+        "graph_density",
+        "pillar_traceability",
+        "bidirectionality_ratio",
+        "broken_ref_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "total_nodes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of primary nodes (excluding alias nodes in org mode)."
+        },
+        "total_edges": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of directed edges."
+        },
+        "component_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of weakly-connected components. 1 means fully connected."
+        },
+        "largest_component_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Largest connected component size / total nodes (0.0–1.0)."
+        },
+        "orphan_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Nodes with zero incoming references (excluding doc artifacts)."
+        },
+        "orphan_percentage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "orphan_count / total_nodes * 100, rounded to 1 decimal place."
+        },
+        "avg_degree": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Average number of relationships per node (edges * 2 / nodes)."
+        },
+        "graph_density": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Edge density: edges / (nodes * (nodes - 1)), clamped 0.0–1.0."
+        },
+        "pillar_traceability": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "Percentage of non-doc nodes that can trace a path to a pillar artifact (0.0–100.0)."
+        },
+        "bidirectionality_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Ratio of typed relationship edges that have their inverse present (0.0–1.0)."
+        },
+        "broken_ref_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of broken references (target not in graph)."
+        }
+      }
+    },
+
+    "HealthSnapshot": {
+      "title": "HealthSnapshot",
+      "description": "A point-in-time snapshot of graph health metrics stored in SQLite.",
+      "type": "object",
+      "required": [
+        "id",
+        "project_id",
+        "created_at",
+        "node_count",
+        "edge_count",
+        "orphan_count",
+        "broken_ref_count",
+        "error_count",
+        "warning_count",
+        "largest_component_ratio",
+        "orphan_percentage",
+        "avg_degree",
+        "graph_density",
+        "component_count",
+        "pillar_traceability",
+        "bidirectionality_ratio"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Auto-incremented SQLite row ID."
+        },
+        "project_id": {
+          "type": "integer",
+          "description": "Foreign key to the projects table."
+        },
+        "created_at": {
+          "type": "string",
+          "description": "ISO 8601 timestamp when this snapshot was recorded."
+        },
+        "node_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "edge_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "orphan_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "broken_ref_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of Error-severity integrity findings at snapshot time."
+        },
+        "warning_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of Warning-severity integrity findings at snapshot time."
+        },
+        "largest_component_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "orphan_percentage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0
+        },
+        "avg_degree": {
+          "type": "number",
+          "minimum": 0.0
+        },
+        "graph_density": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "component_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pillar_traceability": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0
+        },
+        "bidirectionality_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+
+    "AncestryNode": {
+      "title": "AncestryNode",
+      "description": "A single node in an ancestry chain, ordered from the query artifact up to the pillar or vision root.",
+      "type": "object",
+      "required": ["id", "title", "artifact_type", "relationship"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Artifact ID (e.g. 'EPIC-048')."
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable title."
+        },
+        "artifact_type": {
+          "type": "string",
+          "description": "Artifact type string (e.g. 'epic', 'pillar')."
+        },
+        "relationship": {
+          "type": "string",
+          "description": "The relationship type connecting this node to the next node upward. Empty string for the terminal (pillar/vision) node."
+        }
+      }
+    },
+
+    "AncestryChain": {
+      "title": "AncestryChain",
+      "description": "An ordered path from the query artifact to a pillar or vision root.",
+      "type": "object",
+      "required": ["path"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "array",
+          "description": "Ordered from current artifact (index 0) to pillar/vision root (last).",
+          "items": { "$ref": "#/$defs/AncestryNode" }
+        }
+      }
+    },
+
+    "TracedArtifact": {
+      "title": "TracedArtifact",
+      "description": "A downstream artifact with its BFS distance from the query artifact.",
+      "type": "object",
+      "required": ["id", "depth"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Artifact ID."
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "BFS hops from the query artifact."
+        }
+      }
+    },
+
+    "TraceabilityResult": {
+      "title": "TraceabilityResult",
+      "description": "Full traceability result for a single artifact.",
+      "type": "object",
+      "required": ["ancestry_chains", "descendants", "siblings", "impact_radius", "disconnected"],
+      "additionalProperties": false,
+      "properties": {
+        "ancestry_chains": {
+          "type": "array",
+          "description": "All paths from the artifact upward to any pillar or vision.",
+          "items": { "$ref": "#/$defs/AncestryChain" }
+        },
+        "descendants": {
+          "type": "array",
+          "description": "All downstream artifacts with their BFS distance.",
+          "items": { "$ref": "#/$defs/TracedArtifact" }
+        },
+        "siblings": {
+          "type": "array",
+          "description": "IDs of artifacts that share at least one direct parent with this artifact.",
+          "items": { "type": "string" }
+        },
+        "impact_radius": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of distinct descendants within 2 hops."
+        },
+        "disconnected": {
+          "type": "boolean",
+          "description": "True when no path exists to any pillar or vision artifact."
+        }
+      }
+    }
+  },
+
+  "anyOf": [
+    { "$ref": "#/$defs/GraphHealth" },
+    { "$ref": "#/$defs/HealthSnapshot" },
+    { "$ref": "#/$defs/AncestryNode" },
+    { "$ref": "#/$defs/AncestryChain" },
+    { "$ref": "#/$defs/TracedArtifact" },
+    { "$ref": "#/$defs/TraceabilityResult" }
+  ]
+}

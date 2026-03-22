@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orqastudio.dev/schemas/config.json",
+  "title": "Configuration Types",
+  "description": "Project settings, plugin configuration, and delivery configuration types.",
+
+  "$defs": {
+    "ArtifactTypeConfig": {
+      "title": "ArtifactTypeConfig",
+      "description": "A single artifact type with a filesystem path to scan.",
+      "type": "object",
+      "required": ["key", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Artifact type key matching platform artifact types."
+        },
+        "label": {
+          "type": ["string", "null"],
+          "description": "Display label for this type."
+        },
+        "icon": {
+          "type": ["string", "null"],
+          "description": "Lucide icon name."
+        },
+        "path": {
+          "type": "string",
+          "description": "Relative directory path within .orqa/ to scan for this type."
+        }
+      }
+    },
+
+    "ArtifactEntry": {
+      "title": "ArtifactEntry",
+      "description": "An entry in the artifacts config — either a direct type or a group of types.",
+      "oneOf": [
+        {
+          "title": "ArtifactGroup",
+          "description": "A grouped collection of artifact types.",
+          "type": "object",
+          "required": ["key", "children"],
+          "additionalProperties": false,
+          "properties": {
+            "key": { "type": "string" },
+            "label": { "type": ["string", "null"] },
+            "icon": { "type": ["string", "null"] },
+            "children": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/ArtifactTypeConfig" }
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/ArtifactTypeConfig"
+        }
+      ]
+    },
+
+    "DeliveryParentConfig": {
+      "title": "DeliveryParentConfig",
+      "description": "The parent relationship config for a delivery type.",
+      "type": "object",
+      "required": ["type", "relationship"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The parent artifact type key."
+        },
+        "relationship": {
+          "type": "string",
+          "description": "Relationship type connecting child to parent."
+        }
+      }
+    },
+
+    "DeliveryTypeConfig": {
+      "title": "DeliveryTypeConfig",
+      "description": "A single delivery type defined in project.json.",
+      "type": "object",
+      "required": ["key", "label", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique delivery type key."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable label."
+        },
+        "path": {
+          "type": "string",
+          "description": "Relative directory path within .orqa/ for this delivery type."
+        },
+        "parent": {
+          "oneOf": [
+            { "$ref": "#/$defs/DeliveryParentConfig" },
+            { "type": "null" }
+          ]
+        },
+        "gate_field": {
+          "type": ["string", "null"],
+          "description": "Frontmatter field used as the gate condition for status promotion."
+        }
+      }
+    },
+
+    "DeliveryConfig": {
+      "title": "DeliveryConfig",
+      "description": "The delivery configuration block from project.json.",
+      "type": "object",
+      "required": ["types"],
+      "additionalProperties": false,
+      "properties": {
+        "types": {
+          "type": "array",
+          "description": "Ordered list of delivery type definitions.",
+          "items": { "$ref": "#/$defs/DeliveryTypeConfig" }
+        }
+      }
+    },
+
+    "ProjectRelationshipConfig": {
+      "title": "ProjectRelationshipConfig",
+      "description": "A project-level relationship type defined in project.json.",
+      "type": "object",
+      "required": ["key", "inverse", "label", "inverse_label"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Relationship type key (lowercase, hyphenated)."
+        },
+        "inverse": {
+          "type": "string",
+          "description": "Inverse relationship type key."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable label for the forward direction."
+        },
+        "inverse_label": {
+          "type": "string",
+          "description": "Human-readable label for the inverse direction."
+        }
+      }
+    },
+
+    "ChildProjectConfig": {
+      "title": "ChildProjectConfig",
+      "description": "A child project reference in an organisation-mode project.",
+      "type": "object",
+      "required": ["name", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Logical name for this child project."
+        },
+        "path": {
+          "type": "string",
+          "description": "Absolute or relative path to the child project root."
+        }
+      }
+    },
+
+    "StatusDefinition": {
+      "title": "StatusDefinition",
+      "description": "A status definition loaded from project.json.",
+      "type": "object",
+      "required": ["key", "label", "icon"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique status key (lowercase)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable label."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Lucide icon name."
+        },
+        "spin": {
+          "type": "boolean",
+          "description": "Whether to animate the icon with a spin effect.",
+          "default": false
+        },
+        "transitions": {
+          "type": "array",
+          "description": "Valid next status keys from this status.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "PluginProjectConfig": {
+      "title": "PluginProjectConfig",
+      "description": "Per-plugin configuration stored in project.json under 'plugins.<name>'.",
+      "type": "object",
+      "required": ["installed", "enabled", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "installed": {
+          "type": "boolean",
+          "description": "Whether the plugin has been installed."
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the plugin is currently active."
+        },
+        "path": {
+          "type": "string",
+          "description": "Absolute or relative path to the plugin root."
+        },
+        "relationships": {
+          "type": ["object", "null"],
+          "description": "Map of relationship key → enabled boolean for plugin-provided relationships.",
+          "additionalProperties": { "type": "boolean" }
+        },
+        "config": {
+          "type": ["object", "null"],
+          "description": "Plugin-specific configuration values.",
+          "additionalProperties": true
+        }
+      }
+    },
+
+    "ProjectSettings": {
+      "title": "ProjectSettings",
+      "description": "Minimal project settings loaded from {project}/.orqa/project.json.",
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Project display name."
+        },
+        "organisation": {
+          "type": "boolean",
+          "description": "Whether this is an organisation-mode project with child projects.",
+          "default": false
+        },
+        "projects": {
+          "type": "array",
+          "description": "Child project references (only used when organisation is true).",
+          "items": { "$ref": "#/$defs/ChildProjectConfig" },
+          "default": []
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Artifact type navigation configuration.",
+          "items": { "$ref": "#/$defs/ArtifactEntry" },
+          "default": []
+        },
+        "statuses": {
+          "type": "array",
+          "description": "Valid status definitions for this project.",
+          "items": { "$ref": "#/$defs/StatusDefinition" },
+          "default": []
+        },
+        "delivery": {
+          "$ref": "#/$defs/DeliveryConfig",
+          "description": "Delivery hierarchy configuration."
+        },
+        "relationships": {
+          "type": "array",
+          "description": "Project-level relationship types beyond the core platform relationships.",
+          "items": { "$ref": "#/$defs/ProjectRelationshipConfig" },
+          "default": []
+        },
+        "plugins": {
+          "type": "object",
+          "description": "Plugin configurations keyed by plugin name.",
+          "additionalProperties": { "$ref": "#/$defs/PluginProjectConfig" },
+          "default": {}
+        }
+      }
+    }
+  },
+
+  "anyOf": [
+    { "$ref": "#/$defs/ProjectSettings" },
+    { "$ref": "#/$defs/ArtifactTypeConfig" },
+    { "$ref": "#/$defs/DeliveryTypeConfig" },
+    { "$ref": "#/$defs/ProjectRelationshipConfig" },
+    { "$ref": "#/$defs/ChildProjectConfig" },
+    { "$ref": "#/$defs/StatusDefinition" },
+    { "$ref": "#/$defs/PluginProjectConfig" }
+  ]
+}

@@ -10,13 +10,13 @@
     "widgets": [],
     "relationships": [],
     "knowledge": [
-      { "key": "cli-usage", "id": "KNOW-CLI-3198c8fb", "label": "CLI Usage" },
-      { "key": "version-management", "id": "KNOW-CLI-7b5c1bda", "label": "Version Management" },
-      { "key": "plugin-management", "id": "KNOW-CLI-9e1a2f6a", "label": "Plugin Management" },
-      { "key": "dev-environment", "id": "KNOW-CLI-6ee6c91e", "label": "Dev Environment" },
-      { "key": "self-maintenance", "id": "KNOW-CLI-6391d2a8", "label": "Self-Maintenance" },
-      { "key": "license-management", "id": "KNOW-CLI-9466a88a", "label": "License Management" },
-      { "key": "readme-standards", "id": "KNOW-CLI-4cc73a12", "label": "README Standards" }
+      { "key": "cli-usage", "id": "KNOW-3198c8fb", "label": "CLI Usage" },
+      { "key": "version-management", "id": "KNOW-7b5c1bda", "label": "Version Management" },
+      { "key": "plugin-management", "id": "KNOW-9e1a2f6a", "label": "Plugin Management" },
+      { "key": "dev-environment", "id": "KNOW-6ee6c91e", "label": "Dev Environment" },
+      { "key": "self-maintenance", "id": "KNOW-6391d2a8", "label": "Self-Maintenance" },
+      { "key": "license-management", "id": "KNOW-9466a88a", "label": "License Management" },
+      { "key": "readme-standards", "id": "KNOW-4cc73a12", "label": "README Standards" }
     ],
     "cliTools": [
       {

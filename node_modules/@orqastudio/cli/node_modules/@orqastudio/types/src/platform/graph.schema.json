@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orqastudio.dev/schemas/graph.json",
+  "title": "Artifact Graph Types",
+  "description": "Graph structure types for the OrqaStudio artifact graph. Both the Rust backend and TypeScript frontend use these types across the Tauri IPC boundary.",
+
+  "$defs": {
+    "ArtifactRef": {
+      "title": "ArtifactRef",
+      "description": "A directed reference from one artifact to another.",
+      "type": "object",
+      "required": ["target_id", "field", "source_id"],
+      "additionalProperties": false,
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "description": "The artifact ID that is referenced (the link target)."
+        },
+        "field": {
+          "type": "string",
+          "description": "Name of the frontmatter field that contains this reference."
+        },
+        "source_id": {
+          "type": "string",
+          "description": "ID of the artifact that declares this reference (the link source)."
+        },
+        "relationship_type": {
+          "type": ["string", "null"],
+          "description": "Semantic relationship type (e.g. 'enforced-by', 'grounded'). Only set for refs from the relationships array."
+        }
+      }
+    },
+
+    "ArtifactNode": {
+      "title": "ArtifactNode",
+      "description": "A single artifact node in the bidirectional graph.",
+      "type": "object",
+      "required": ["id", "path", "artifact_type", "title", "frontmatter", "references_out", "references_in"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Frontmatter 'id' field (e.g. 'EPIC-048')."
+        },
+        "project": {
+          "type": ["string", "null"],
+          "description": "Source project name in organisation mode, or null for single-project mode."
+        },
+        "path": {
+          "type": "string",
+          "description": "Relative path from the project root (e.g. '.orqa/delivery/epics/EPIC-048.md')."
+        },
+        "artifact_type": {
+          "type": "string",
+          "description": "Inferred category string (e.g. 'epic', 'task', 'milestone', 'idea', 'decision')."
+        },
+        "title": {
+          "type": "string",
+          "description": "Frontmatter 'title' field, or a humanized fallback from the filename."
+        },
+        "description": {
+          "type": ["string", "null"],
+          "description": "Frontmatter 'description' field."
+        },
+        "status": {
+          "type": ["string", "null"],
+          "description": "Frontmatter 'status' field."
+        },
+        "priority": {
+          "type": ["string", "null"],
+          "description": "Frontmatter 'priority' field (e.g. 'P1', 'P2', 'P3')."
+        },
+        "frontmatter": {
+          "type": "object",
+          "description": "Full YAML frontmatter parsed into a generic JSON object.",
+          "additionalProperties": true
+        },
+        "references_out": {
+          "type": "array",
+          "description": "Forward references declared in this node's frontmatter.",
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        },
+        "references_in": {
+          "type": "array",
+          "description": "Backlinks computed from other nodes' references_out during graph construction.",
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        }
+      }
+    },
+
+    "ArtifactGraph": {
+      "title": "ArtifactGraph",
+      "description": "A bidirectional graph of all governance artifacts in .orqa/. Built by scanning every .md file that carries a YAML 'id' field.",
+      "type": "object",
+      "required": ["nodes", "path_index"],
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "type": "object",
+          "description": "All artifact nodes, keyed by their 'id' frontmatter value (e.g. 'EPIC-048').",
+          "additionalProperties": { "$ref": "#/$defs/ArtifactNode" }
+        },
+        "path_index": {
+          "type": "object",
+          "description": "Reverse-lookup index: relative file path → artifact ID.",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+
+    "GraphStats": {
+      "title": "GraphStats",
+      "description": "Summary statistics about the artifact graph.",
+      "type": "object",
+      "required": ["node_count", "edge_count", "orphan_count", "broken_ref_count"],
+      "additionalProperties": false,
+      "properties": {
+        "node_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of nodes (artifacts with an 'id' field)."
+        },
+        "edge_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of directed edges (sum of all references_out lengths)."
+        },
+        "orphan_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Nodes that have no references_out and no references_in."
+        },
+        "broken_ref_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "References whose target_id does not exist in the graph."
+        }
+      }
+    }
+  },
+
+  "anyOf": [
+    { "$ref": "#/$defs/ArtifactGraph" },
+    { "$ref": "#/$defs/ArtifactNode" },
+    { "$ref": "#/$defs/ArtifactRef" },
+    { "$ref": "#/$defs/GraphStats" }
+  ]
+}

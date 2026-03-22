@@ -1,12 +1,12 @@
 ---
-id: DOC-CLI-65eb8303
+id: DOC-65eb8303
 title: Dev Environment Setup Guide
 description: "How to set up the OrqaStudio dev environment — submodules, npm linking, and the multi-repo workflow."
 category: onboarding
 created: 2026-03-18
 updated: 2026-03-18
 relationships:
-  - target: KNOW-CLI-6ee6c91e
+  - target: KNOW-6ee6c91e
     type: synchronised-with
 ---
 

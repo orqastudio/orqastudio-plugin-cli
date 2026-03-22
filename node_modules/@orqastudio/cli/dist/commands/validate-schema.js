@@ -8,6 +8,7 @@
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
+import { checkRequiredCategories, checkPluginDependencies, } from "../validator/checks/plugin-integrity.js";
 const USAGE = `
 Usage: orqa validate schema [path] [options]
 
@@ -243,6 +244,57 @@ function discoverAndValidate(projectRoot) {
                 findings.push(...validatePluginManifest(manifestPath));
             }
         }
+    }
+    // Plugin integrity checks: required categories + dependency resolution
+    const loadedPlugins = [];
+    for (const container of ["plugins", "connectors"]) {
+        const containerDir = join(projectRoot, container);
+        let entries;
+        try {
+            entries = readdirSync(containerDir, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        for (const entry of entries) {
+            if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules")
+                continue;
+            const manifestPath = join(containerDir, entry.name, "orqa-plugin.json");
+            if (!existsSync(manifestPath))
+                continue;
+            try {
+                const data = JSON.parse(readFileSync(manifestPath, "utf-8"));
+                if (typeof data["name"] === "string") {
+                    loadedPlugins.push({
+                        name: data["name"],
+                        path: relative(process.cwd(), manifestPath),
+                        category: typeof data["category"] === "string" ? data["category"] : null,
+                        requires: Array.isArray(data["requires"])
+                            ? data["requires"].filter((r) => typeof r === "string")
+                            : [],
+                    });
+                }
+            }
+            catch {
+                continue;
+            }
+        }
+    }
+    for (const finding of checkRequiredCategories(loadedPlugins)) {
+        findings.push({
+            file: "(project)",
+            field: "category",
+            severity: finding.severity,
+            message: finding.message,
+        });
+    }
+    for (const finding of checkPluginDependencies(loadedPlugins)) {
+        findings.push({
+            file: "(project)",
+            field: `plugins.${finding.plugin}.requires`,
+            severity: finding.severity,
+            message: finding.message,
+        });
     }
     // Validate child project project.json files (organisation mode)
     const projectJsonContent = existsSync(projectJsonPath)

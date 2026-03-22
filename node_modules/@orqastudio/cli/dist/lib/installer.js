@@ -4,14 +4,9 @@
  * Plugins are distributed as .tar.gz archives from GitHub Releases.
  * Local path installs are also supported for development.
  *
- * Post-install setup (runPostInstallSetup):
- * - Creates .claude/agents/ as a merged directory of core + plugin agents
- *   Core agents are symlinked from app/.orqa/process/agents/ (or .orqa/process/agents/).
- *   Plugin agents declared via provides.agents in orqa-plugin.json are symlinked alongside.
- * - Creates .claude/rules → .orqa/process/rules/ symlink
- * - Aggregates lspServers/mcpServers from all plugin manifests → .lsp.json/.mcp.json
- * NOTE: .claude/CLAUDE.md is NOT managed here — it is a Claude Code project artifact
- * maintained directly, not derived from any source file.
+ * Post-install hooks: callers pass an optional `postInstall` callback in InstallOptions.
+ * Connector-specific setup (e.g. .claude/ wiring) lives in the connector package,
+ * not here. The CLI installer is platform-agnostic.
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -84,15 +79,15 @@ export async function installPlugin(options) {
     }
     // Detect source type
     if (fs.existsSync(options.source)) {
-        return installFromLocalPath(options.source, dir);
+        return installFromLocalPath(options.source, dir, options.postInstall);
     }
     // GitHub owner/repo format
     if (options.source.includes("/") && !options.source.includes(path.sep)) {
-        return installFromGitHub(options.source, options.version, dir, root);
+        return installFromGitHub(options.source, options.version, dir, root, options.postInstall);
     }
     throw new Error(`Invalid source: ${options.source}. Use owner/repo for GitHub or a local path.`);
 }
-async function installFromLocalPath(source, pluginsDirectory) {
+async function installFromLocalPath(source, pluginsDirectory, postInstall) {
     const projectRoot = path.dirname(pluginsDirectory);
     const manifest = readManifest(source);
     const errors = validateManifest(manifest);
@@ -105,11 +100,7 @@ async function installFromLocalPath(source, pluginsDirectory) {
         fs.rmSync(targetDir, { recursive: true });
     }
     fs.cpSync(source, targetDir, { recursive: true });
-    // Run post-install setup for connector plugins (those that declare lspServers or mcpServers)
-    const provides = manifest.provides;
-    if (provides.lspServers || provides.mcpServers) {
-        runPostInstallSetup(projectRoot, targetDir);
-    }
+    postInstall?.(targetDir, projectRoot);
     return {
         name: manifest.name,
         version: manifest.version,
@@ -118,7 +109,7 @@ async function installFromLocalPath(source, pluginsDirectory) {
         collisions,
     };
 }
-async function installFromGitHub(repo, version, pluginsDirectory, projectRoot) {
+async function installFromGitHub(repo, version, pluginsDirectory, projectRoot, postInstall) {
     // Resolve latest version if not specified
     const tag = version ?? (await fetchLatestTag(repo));
     const archiveUrl = `https://github.com/${repo}/releases/download/${tag}/${repo.split("/")[1]}-${tag}.tar.gz`;
@@ -161,11 +152,7 @@ async function installFromGitHub(repo, version, pluginsDirectory, projectRoot) {
         });
         writeLockfile(projectRoot, lockfile);
         const collisions = detectCollisions(manifest, projectRoot);
-        // Run post-install setup for connector plugins (those that declare lspServers or mcpServers)
-        const provides = manifest.provides;
-        if (provides.lspServers || provides.mcpServers) {
-            runPostInstallSetup(projectRoot, pluginDir);
-        }
+        postInstall?.(pluginDir, projectRoot);
         console.log(`Installed ${manifest.name}@${manifest.version}`);
         return {
             name: manifest.name,
@@ -248,261 +235,5 @@ export function listInstalledPlugins(projectRoot) {
         }
     }
     return results;
-}
-/**
- * Run post-install setup for the Claude Code connector:
- * 1. Build .claude/agents/ as a merged directory containing symlinks to:
- *    - All core agents from app/.orqa/process/agents/ (or .orqa/process/agents/)
- *    - All plugin agents declared via provides.agents in installed plugin manifests
- *    Plugin agents are keyed by their manifest `key` field (e.g. "rust-specialist").
- *    Core agents take precedence: a plugin cannot shadow a core agent filename.
- * 2. Create .claude/rules → .orqa/process/rules/ symlink
- * 3. Aggregate lspServers/mcpServers from all plugins/connectors → .lsp.json/.mcp.json
- *    written into the connector's plugin directory.
- *
- * Called automatically by installPlugin when the installed plugin is the Claude Code connector.
- * Can also be called standalone to repair a broken install.
- *
- * NOTE: .claude/CLAUDE.md is NOT managed here — it is a Claude Code project artifact
- * maintained directly.
- */
-export function runPostInstallSetup(projectRoot, connectorPluginDir) {
-    const orqaDir = path.join(projectRoot, ".orqa");
-    const appOrqaDir = path.join(projectRoot, "app", ".orqa");
-    const claudeDir = path.join(projectRoot, ".claude");
-    // Ensure .claude/ exists
-    if (!fs.existsSync(claudeDir)) {
-        fs.mkdirSync(claudeDir, { recursive: true });
-    }
-    // Agents live in app/.orqa/process/agents/ (OrqaStudio monorepo structure).
-    // Fall back to .orqa/process/agents/ for non-monorepo projects.
-    const agentsSource = fs.existsSync(path.join(appOrqaDir, "process", "agents"))
-        ? path.join(appOrqaDir, "process", "agents")
-        : path.join(orqaDir, "process", "agents");
-    // Build the merged .claude/agents/ directory with core + plugin agent symlinks.
-    const symlinkAgents = setupMergedAgentsDir(path.join(claudeDir, "agents"), agentsSource, projectRoot);
-    const symlinkRules = setupSymlink(path.join(claudeDir, "rules"), path.join(orqaDir, "process", "rules"));
-    const { lsp, mcp } = aggregateServers(projectRoot);
-    const pluginAgentCount = countPluginAgents(projectRoot);
-    const lspPath = path.join(connectorPluginDir, ".lsp.json");
-    const mcpPath = path.join(projectRoot, ".mcp.json");
-    const newLsp = JSON.stringify(lsp, null, 2);
-    const existingLsp = fs.existsSync(lspPath) ? fs.readFileSync(lspPath, "utf-8") : "";
-    if (newLsp !== existingLsp) {
-        fs.writeFileSync(lspPath, newLsp);
-    }
-    const newMcp = JSON.stringify({ mcpServers: mcp }, null, 2);
-    const existingMcp = fs.existsSync(mcpPath) ? fs.readFileSync(mcpPath, "utf-8") : "";
-    if (newMcp !== existingMcp) {
-        fs.writeFileSync(mcpPath, newMcp);
-    }
-    return {
-        symlinkAgents,
-        symlinkRules,
-        pluginAgentCount,
-        lspCount: Object.keys(lsp).length,
-        mcpCount: Object.keys(mcp).length,
-    };
-}
-/**
- * Build or repair the .claude/agents/ merged directory.
- *
- * Strategy:
- * - If the path is an old-style symlink pointing to a directory, remove it and
- *   recreate as a real directory. This migrates existing installs transparently.
- * - Create the directory if it doesn't exist.
- * - Symlink every core agent .md file from agentsSource into the directory.
- * - Symlink every plugin agent declared in provides.agents from installed plugins.
- *   Plugin agents are skipped if a core agent with the same filename already exists.
- *
- * Returns:
- * - "created": directory was newly created (or migrated from a symlink)
- * - "exists": directory already existed and was updated in-place
- * - "skipped": agentsSource does not exist — nothing to link
- */
-function setupMergedAgentsDir(agentsDirPath, coreAgentsSource, projectRoot) {
-    if (!fs.existsSync(coreAgentsSource)) {
-        return "skipped";
-    }
-    let wasCreated = false;
-    // Migrate: if it's a symlink, remove it so we can create a real directory
-    try {
-        const stat = fs.lstatSync(agentsDirPath);
-        if (stat.isSymbolicLink()) {
-            fs.unlinkSync(agentsDirPath);
-            wasCreated = true;
-        }
-    }
-    catch {
-        // Path does not exist — will be created below
-        wasCreated = true;
-    }
-    if (!fs.existsSync(agentsDirPath)) {
-        fs.mkdirSync(agentsDirPath, { recursive: true });
-        wasCreated = true;
-    }
-    // Collect core agent filenames so we can detect conflicts
-    const coreAgentFiles = new Set();
-    for (const entry of fs.readdirSync(coreAgentsSource)) {
-        if (!entry.endsWith(".md"))
-            continue;
-        coreAgentFiles.add(entry);
-        const linkPath = path.join(agentsDirPath, entry);
-        const targetPath = path.join(coreAgentsSource, entry);
-        ensureAgentSymlink(linkPath, targetPath);
-    }
-    // Link plugin agents
-    const pluginsDir = path.join(projectRoot, "plugins");
-    if (fs.existsSync(pluginsDir)) {
-        for (const entry of fs.readdirSync(pluginsDir, { withFileTypes: true })) {
-            if (!entry.isDirectory() || entry.name.startsWith("."))
-                continue;
-            const pluginDir = path.join(pluginsDir, entry.name);
-            const manifestPath = path.join(pluginDir, "orqa-plugin.json");
-            if (!fs.existsSync(manifestPath))
-                continue;
-            try {
-                const raw = fs.readFileSync(manifestPath, "utf-8");
-                const manifest = JSON.parse(raw);
-                const agentEntries = manifest.provides?.agents ?? [];
-                for (const agentEntry of agentEntries) {
-                    const agentFile = path.basename(agentEntry.path);
-                    // Core agents take precedence — never shadow them
-                    if (coreAgentFiles.has(agentFile))
-                        continue;
-                    const targetPath = path.join(pluginDir, agentEntry.path);
-                    if (!fs.existsSync(targetPath))
-                        continue;
-                    const linkPath = path.join(agentsDirPath, agentFile);
-                    ensureAgentSymlink(linkPath, targetPath);
-                }
-            }
-            catch {
-                // Skip plugins with invalid manifests
-            }
-        }
-    }
-    return wasCreated ? "created" : "exists";
-}
-/**
- * Create or verify a symlink at linkPath pointing to targetPath.
- * If a symlink already exists at linkPath pointing to the correct target, leave it.
- * If a stale symlink or file exists, replace it.
- */
-function ensureAgentSymlink(linkPath, targetPath) {
-    try {
-        const stat = fs.lstatSync(linkPath);
-        if (stat.isSymbolicLink()) {
-            const current = fs.readlinkSync(linkPath);
-            if (current === targetPath)
-                return; // Already correct
-            fs.unlinkSync(linkPath);
-        }
-        else {
-            // Regular file — leave it (manual override)
-            return;
-        }
-    }
-    catch {
-        // Does not exist — fall through to create
-    }
-    fs.symlinkSync(targetPath, linkPath, "file");
-}
-/**
- * Count the total number of plugin agent entries across all installed plugins.
- */
-function countPluginAgents(projectRoot) {
-    let count = 0;
-    const pluginsDir = path.join(projectRoot, "plugins");
-    if (!fs.existsSync(pluginsDir))
-        return count;
-    for (const entry of fs.readdirSync(pluginsDir, { withFileTypes: true })) {
-        if (!entry.isDirectory() || entry.name.startsWith("."))
-            continue;
-        const manifestPath = path.join(pluginsDir, entry.name, "orqa-plugin.json");
-        if (!fs.existsSync(manifestPath))
-            continue;
-        try {
-            const raw = fs.readFileSync(manifestPath, "utf-8");
-            const manifest = JSON.parse(raw);
-            count += manifest.provides?.agents?.length ?? 0;
-        }
-        catch {
-            // Skip invalid
-        }
-    }
-    return count;
-}
-/**
- * Create a symlink from linkPath → targetPath.
- * - "created": symlink was created
- * - "skipped": target does not exist, nothing to link
- * - "exists": already a symlink (correct or not — caller can verify if needed)
- */
-function setupSymlink(linkPath, targetPath) {
-    if (!fs.existsSync(targetPath)) {
-        return "skipped";
-    }
-    // lstatSync sees symlinks without following them
-    try {
-        const stat = fs.lstatSync(linkPath);
-        if (stat.isSymbolicLink() || stat.isDirectory() || stat.isFile()) {
-            return "exists";
-        }
-    }
-    catch {
-        // Path does not exist — fall through to create
-    }
-    fs.symlinkSync(targetPath, linkPath, "junction");
-    return "created";
-}
-/**
- * Scan plugins/ and connectors/ directories for orqa-plugin.json manifests
- * and aggregate their lspServers/mcpServers declarations.
- * First declaration wins (plugins/ is scanned before connectors/).
- */
-function aggregateServers(projectRoot) {
-    const lsp = {};
-    const mcp = {};
-    const scanDirs = [
-        path.join(projectRoot, "plugins"),
-        path.join(projectRoot, "connectors"),
-    ];
-    for (const scanDir of scanDirs) {
-        if (!fs.existsSync(scanDir))
-            continue;
-        for (const entry of fs.readdirSync(scanDir, { withFileTypes: true })) {
-            if (!entry.isDirectory() || entry.name.startsWith("."))
-                continue;
-            const manifestPath = path.join(scanDir, entry.name, "orqa-plugin.json");
-            if (!fs.existsSync(manifestPath))
-                continue;
-            try {
-                const raw = fs.readFileSync(manifestPath, "utf-8");
-                const manifest = JSON.parse(raw);
-                const provides = manifest.provides ?? {};
-                if (provides.lspServers && typeof provides.lspServers === "object") {
-                    for (const [name, config] of Object.entries(provides.lspServers)) {
-                        if (!(name in lsp)) {
-                            lsp[name] = config;
-                        }
-                    }
-                }
-                if (provides.mcpServers && typeof provides.mcpServers === "object") {
-                    for (const [name, config] of Object.entries(provides.mcpServers)) {
-                        if (!(name in mcp)) {
-                            // Strip "type" field — Claude Code doesn't use it
-                            const { type, ...mcpConfig } = config;
-                            mcp[name] = mcpConfig;
-                        }
-                    }
-                }
-            }
-            catch {
-                // Skip invalid manifests
-            }
-        }
-    }
-    return { lsp, mcp };
 }
 //# sourceMappingURL=installer.js.map

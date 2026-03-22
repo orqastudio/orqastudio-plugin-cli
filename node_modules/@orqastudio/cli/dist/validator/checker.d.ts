@@ -11,6 +11,7 @@ type CheckFn = (graph: ArtifactGraph, ctx: CheckContext) => IntegrityFinding[];
  * 5. RequiredRelationship — constraints.required + minCount from schema
  * 6. CircularDependency — cycles in dependency-semantic edges
  * 7. BodyTemplate — required body sections from schema.json files
+ * 8. FrontmatterRequired — required frontmatter fields from plugin schemas
  */
 export declare const ALL_CHECKS: CheckFn[];
 /**

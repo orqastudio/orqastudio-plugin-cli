@@ -107,5 +107,11 @@ export interface CheckContext {
         from?: string[];
         to?: string[];
     }>;
+    /**
+     * Required frontmatter fields per artifact type, merged from all plugin schemas.
+     * Key: artifact type key (e.g. "rule", "lesson", "agent").
+     * Value: field names that must be present in every artifact of that type.
+     */
+    frontmatterRequirements: ReadonlyMap<string, ReadonlyArray<string>>;
 }
 //# sourceMappingURL=types.d.ts.map

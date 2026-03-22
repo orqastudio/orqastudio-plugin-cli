@@ -1,11 +1,11 @@
 ---
-id: KNOW-CLI-6391d2a8
+id: KNOW-6391d2a8
 type: knowledge
 name: CLI Plugin Self-Maintenance
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 
 ---

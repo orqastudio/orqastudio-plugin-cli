@@ -1,15 +1,15 @@
 ---
-id: KNOW-CLI-9466a88a
+id: KNOW-9466a88a
 type: knowledge
 name: License Management
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-a6cc3de5
+  - target: DOC-a6cc3de5
     type: synchronised-with
   - target: DOC-4ed362fb
     type: synchronised-with
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 
 ---

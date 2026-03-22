@@ -1,11 +1,11 @@
 ---
-id: KNOW-CLI-3198c8fb
+id: KNOW-3198c8fb
 type: knowledge
 name: OrqaStudio CLI Usage
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 ---
 

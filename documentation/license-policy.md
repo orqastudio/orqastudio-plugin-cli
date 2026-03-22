@@ -1,12 +1,12 @@
 ---
-id: DOC-CLI-a6cc3de5
+id: DOC-a6cc3de5
 title: License Policy
 description: "Which licenses apply to which OrqaStudio components and how to audit compliance."
 category: reference
 created: 2026-03-18
 updated: 2026-03-21
 relationships:
-  - target: KNOW-CLI-9466a88a
+  - target: KNOW-9466a88a
     type: synchronised-with
 ---
 

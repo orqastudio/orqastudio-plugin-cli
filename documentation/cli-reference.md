@@ -1,24 +1,24 @@
 ---
-id: DOC-CLI-2c9bfdda
+id: DOC-2c9bfdda
 type: doc
 name: OrqaStudio CLI Reference
 category: reference
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: KNOW-CLI-3198c8fb
+  - target: KNOW-3198c8fb
     type: synchronised-with
-  - target: KNOW-CLI-6ee6c91e
+  - target: KNOW-6ee6c91e
     type: synchronised-with
-  - target: KNOW-CLI-9466a88a
+  - target: KNOW-9466a88a
     type: synchronised-with
-  - target: KNOW-CLI-9e1a2f6a
+  - target: KNOW-9e1a2f6a
     type: synchronised-with
-  - target: KNOW-CLI-4cc73a12
+  - target: KNOW-4cc73a12
     type: synchronised-with
-  - target: KNOW-CLI-6391d2a8
+  - target: KNOW-6391d2a8
     type: synchronised-with
-  - target: KNOW-CLI-7b5c1bda
+  - target: KNOW-7b5c1bda
     type: synchronised-with
 
 ---

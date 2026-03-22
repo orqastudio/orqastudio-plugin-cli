@@ -12,6 +12,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 import { getRoot } from "../lib/root.js";
+import { generateInjectorConfig } from "../lib/injector-config.js";
 const NODE_MIN_MAJOR = 22;
 const USAGE = `
 Usage: orqa install [subcommand]
@@ -352,6 +353,19 @@ function cmdLink(root) {
     else {
         console.error("  ✗ orqa not on PATH — try closing and reopening your terminal");
         process.exit(1);
+    }
+    // Generate injector config from plugin manifests.
+    try {
+        const config = generateInjectorConfig(root);
+        const pluginCount = Object.keys(config.mode_templates).length
+            + (config.behavioral_rules ? 1 : 0)
+            + (config.session_reminders ? 1 : 0);
+        if (pluginCount > 0) {
+            console.log("  ✓ injector config generated");
+        }
+    }
+    catch {
+        // Non-fatal — prompt-injector will fall back to live scanning.
     }
 }
 // ── Smoke Test ──────────────────────────────────────────────────────────────

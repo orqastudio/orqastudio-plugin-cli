@@ -1,5 +1,6 @@
 {
   "$schema": "https://orqastudio.dev/schemas/platform-config.json",
+  "_deprecated": "Types, relationships, and semantics are migrating to plugins. This file is retained for Rust crate compatibility (libs/validation, libs/lsp-server, libs/mcp-server). See @orqastudio/plugin-agile-governance for the authoritative source.",
   "description": "Core platform configuration — artifact types, relationships, and validation constraints. Both the CLI validator and the Rust validator evaluate these schemas generically.",
 
   "artifactTypes": [

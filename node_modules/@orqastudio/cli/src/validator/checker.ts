@@ -16,6 +16,7 @@ import { checkVocabularyCompliance } from "./checks/vocabulary-compliance.js";
 import { checkRequiredRelationships } from "./checks/required-relationships.js";
 import { checkCircularDependencies } from "./checks/circular-dependencies.js";
 import { checkBodyTemplates } from "./checks/body-templates.js";
+import { checkFrontmatterRequired } from "./checks/frontmatter-required.js";
 
 /** A check function that accepts graph + context. */
 type CheckFn = (graph: ArtifactGraph, ctx: CheckContext) => IntegrityFinding[];
@@ -30,6 +31,7 @@ type CheckFn = (graph: ArtifactGraph, ctx: CheckContext) => IntegrityFinding[];
  * 5. RequiredRelationship — constraints.required + minCount from schema
  * 6. CircularDependency — cycles in dependency-semantic edges
  * 7. BodyTemplate — required body sections from schema.json files
+ * 8. FrontmatterRequired — required frontmatter fields from plugin schemas
  */
 export const ALL_CHECKS: CheckFn[] = [
   checkBrokenLinks,
@@ -39,7 +41,63 @@ export const ALL_CHECKS: CheckFn[] = [
   checkRequiredRelationships,
   checkCircularDependencies,
   checkBodyTemplates,
+  checkFrontmatterRequired,
 ];
+
+/**
+ * Load artifact schema definitions from plugin orqa-plugin.json files.
+ * Returns a map from artifact type key → required frontmatter field names.
+ * Scans plugins/ and connectors/ directories.
+ */
+function loadPluginFrontmatterRequirements(projectRoot: string): Map<string, string[]> {
+  const requirements = new Map<string, string[]>();
+
+  for (const container of ["plugins", "connectors"]) {
+    const containerDir = join(projectRoot, container);
+    let entries;
+    try { entries = readdirSync(containerDir, { withFileTypes: true }); } catch { continue; }
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules") continue;
+      try {
+        const manifestPath = join(containerDir, entry.name, "orqa-plugin.json");
+        const raw = readFileSync(manifestPath, "utf-8");
+        const manifest = JSON.parse(raw) as Record<string, unknown>;
+        const provides = manifest["provides"] as Record<string, unknown> | undefined;
+        if (!provides) continue;
+
+        const schemas = provides["schemas"];
+        if (!Array.isArray(schemas)) continue;
+
+        for (const schema of schemas) {
+          const s = schema as Record<string, unknown>;
+          const key = typeof s["key"] === "string" ? s["key"] : null;
+          if (!key) continue;
+
+          const fm = s["frontmatter"] as Record<string, unknown> | undefined;
+          if (!fm) continue;
+
+          const required = fm["required"];
+          if (!Array.isArray(required)) continue;
+
+          const fields = required.filter((f): f is string => typeof f === "string");
+          if (fields.length === 0) continue;
+
+          // Union if multiple plugins define schemas for the same type
+          const existing = requirements.get(key);
+          if (existing) {
+            for (const f of fields) {
+              if (!existing.includes(f)) existing.push(f);
+            }
+          } else {
+            requirements.set(key, [...fields]);
+          }
+        }
+      } catch { continue; }
+    }
+  }
+
+  return requirements;
+}
 
 /**
  * Load relationship definitions from plugin orqa-plugin.json files.
@@ -111,6 +169,9 @@ export function buildCheckContext(projectRoot: string): CheckContext {
   for (const [k, v] of Object.entries(PLATFORM_CONFIG.semantics)) {
     allSemantics[k] = { description: v.description, keys: [...v.keys] };
   }
+
+  // Load plugin frontmatter requirements
+  const frontmatterRequirements = loadPluginFrontmatterRequirements(projectRoot);
 
   // Load plugin relationships — extend existing definitions or add new ones.
   // When a plugin declares a relationship key that already exists (e.g. extending
@@ -218,6 +279,7 @@ export function buildCheckContext(projectRoot: string): CheckContext {
     semantics: allSemantics,
     deliveryTypes,
     relationships: allRelationships,
+    frontmatterRequirements,
   };
 }
 

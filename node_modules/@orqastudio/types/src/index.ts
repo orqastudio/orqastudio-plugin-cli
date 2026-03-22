@@ -124,6 +124,9 @@ export { ARTIFACT_TYPES } from "./artifact-graph.js";
 
 export { buildInverseMap, hasSemantic, keysForSemantic } from "./constants.js";
 
+// Schema-generated types (namespace-qualified to avoid collisions with existing hand-written types)
+export * as Generated from "./generated/index.js";
+
 // Plugin types
 export type {
 	PluginManifest,

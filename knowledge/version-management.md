@@ -1,13 +1,13 @@
 ---
-id: KNOW-CLI-7b5c1bda
+id: KNOW-7b5c1bda
 type: knowledge
 name: Version Management
 status: active
 plugin: "@orqastudio/plugin-cli"
 relationships:
-  - target: DOC-CLI-476471d2
+  - target: DOC-476471d2
     type: synchronised-with
-  - target: DOC-CLI-2c9bfdda
+  - target: DOC-2c9bfdda
     type: synchronised-with
 
 ---

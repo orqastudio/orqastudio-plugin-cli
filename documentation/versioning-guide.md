@@ -1,12 +1,12 @@
 ---
-id: DOC-CLI-476471d2
+id: DOC-476471d2
 title: Versioning System Guide
 description: "How OrqaStudio's single-version ecosystem works — the VERSION file, sync process, and dev tag convention."
 category: how-to
 created: 2026-03-18
 updated: 2026-03-18
 relationships:
-  - target: KNOW-CLI-7b5c1bda
+  - target: KNOW-7b5c1bda
     type: synchronised-with
 ---
 

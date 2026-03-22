@@ -5,6 +5,7 @@
  * plugin management, validation, graph browsing, or version management
  * without spawning a subprocess.
  */
+export { createSymlink, ensureSymlink, verifySymlink, removeSymlink, type SymlinkOptions, type SymlinkResult, type SymlinkVerification, } from "./lib/symlink.js";
 export { installPlugin, uninstallPlugin, listInstalledPlugins } from "./lib/installer.js";
 export { fetchRegistry } from "./lib/registry.js";
 export { readLockfile, writeLockfile } from "./lib/lockfile.js";

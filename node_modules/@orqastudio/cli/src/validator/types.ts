@@ -110,4 +110,10 @@ export interface CheckContext {
   deliveryTypes: Array<{ key: string; parent?: { type: string; relationship: string } }>;
   /** All known relationship definitions (platform + project). */
   relationships: ReadonlyArray<{ key: string; inverse: string; semantic?: string; from?: string[]; to?: string[] }>;
+  /**
+   * Required frontmatter fields per artifact type, merged from all plugin schemas.
+   * Key: artifact type key (e.g. "rule", "lesson", "agent").
+   * Value: field names that must be present in every artifact of that type.
+   */
+  frontmatterRequirements: ReadonlyMap<string, ReadonlyArray<string>>;
 }
