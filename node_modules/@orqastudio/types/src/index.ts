@@ -85,6 +85,13 @@ export type { StreamEvent } from "./streaming.js";
 export type { OrqaError } from "./errors.js";
 
 export type {
+	CanonicalHookEvent,
+	HookContext,
+	HookResult,
+	HookViolation,
+} from "./hooks.js";
+
+export type {
 	SetupStatus,
 	SetupStepStatus,
 	StepStatus,

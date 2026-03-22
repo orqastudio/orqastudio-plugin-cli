@@ -16,6 +16,7 @@ import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { getRoot } from "../lib/root.js";
+import { runDaemonCommand } from "./daemon.js";
 
 const USAGE = `
 Usage: orqa dev [subcommand]
@@ -66,6 +67,13 @@ export async function runDevCommand(args: string[]): Promise<void> {
 	if (!fs.existsSync(devScript)) {
 		console.error("Dev script not found. Are you in the dev repo root?");
 		process.exit(1);
+	}
+
+	// Start the validation daemon alongside the dev environment.
+	if (sub === "dev") {
+		await runDaemonCommand(["start"]).catch(() => {
+			// Daemon may already be running or binary not built — non-fatal.
+		});
 	}
 
 	try {

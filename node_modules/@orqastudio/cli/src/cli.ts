@@ -30,6 +30,7 @@ import { runTestCommand } from "./commands/test.js";
 import { runDevCommand } from "./commands/dev.js";
 import { runLinkCommand } from "./commands/link.js";
 import { runEnforceCommand } from "./commands/enforce.js";
+import { runDaemonCommand } from "./commands/daemon.js";
 
 const USAGE = `
 OrqaStudio CLI v0.1.0-dev
@@ -51,6 +52,7 @@ Commands:
   version     Version management (sync, bump, check, show)
   repo        Repo maintenance (license audit, readme audit)
   link        Cross-platform symlink management (create, verify, status)
+  daemon      Manage the validation daemon (start, stop, status)
   log         Log enforcement responses (enforcement-response)
 
 Options:
@@ -122,6 +124,9 @@ async function main(): Promise<void> {
 			break;
 		case "enforce":
 			await runEnforceCommand(commandArgs);
+			break;
+		case "daemon":
+			await runDaemonCommand(commandArgs);
 			break;
 		case "log":
 			// orqa log enforcement-response → delegates to enforce response

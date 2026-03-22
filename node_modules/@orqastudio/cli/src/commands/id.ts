@@ -10,7 +10,6 @@ import { randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { buildGraph } from "../validator/graph.js";
 
 const USAGE = `
 Usage: orqa id <subcommand> [options]
@@ -81,9 +80,7 @@ function walkFiles(dir: string, results: string[] = []): string[] {
  * Scan for duplicate IDs in the graph.
  */
 function checkDuplicates(projectRoot: string, autoFix: boolean): void {
-	const graph = buildGraph({ projectRoot });
-
-	// Build ID → paths map (the graph deduplicates by keeping last, so we need to scan files directly)
+	// Build ID → paths map by scanning files directly
 	const idToFiles = new Map<string, string[]>();
 	const scanDirs = [
 		join(projectRoot, ".orqa"),

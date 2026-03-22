@@ -9,11 +9,49 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
-import {
-	checkRequiredCategories,
-	checkPluginDependencies,
-	type LoadedPlugin,
-} from "../validator/checks/plugin-integrity.js";
+
+interface LoadedPlugin {
+	name: string;
+	path: string;
+	category: string | null;
+	requires: string[];
+}
+
+interface PluginIntegrityFinding {
+	plugin: string;
+	severity: "error" | "warning";
+	message: string;
+}
+
+const REQUIRED_PLUGIN_CATEGORIES = ["language", "framework"];
+
+function checkRequiredCategories(plugins: LoadedPlugin[]): PluginIntegrityFinding[] {
+	const categories = new Set(plugins.map((p) => p.category).filter(Boolean));
+	return REQUIRED_PLUGIN_CATEGORIES
+		.filter((cat) => !categories.has(cat))
+		.map((cat) => ({
+			plugin: "(project)",
+			severity: "warning" as const,
+			message: `No plugin provides the "${cat}" category — consider installing one`,
+		}));
+}
+
+function checkPluginDependencies(plugins: LoadedPlugin[]): PluginIntegrityFinding[] {
+	const installed = new Set(plugins.map((p) => p.name));
+	const findings: PluginIntegrityFinding[] = [];
+	for (const plugin of plugins) {
+		for (const dep of plugin.requires) {
+			if (!installed.has(dep)) {
+				findings.push({
+					plugin: plugin.name,
+					severity: "error",
+					message: `Plugin "${plugin.name}" requires "${dep}" which is not installed`,
+				});
+			}
+		}
+	}
+	return findings;
+}
 
 const USAGE = `
 Usage: orqa enforce schema [path] [options]
