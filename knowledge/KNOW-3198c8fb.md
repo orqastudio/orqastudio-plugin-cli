@@ -47,9 +47,9 @@ Always use `orqa graph` to understand the current state before modifying artifac
 Run before every commit:
 
 ```bash
-orqa validate              # Check for errors
-orqa validate --fix        # Auto-fix what can be fixed (e.g. missing inverses), then re-check
-orqa validate --json       # JSON output for tooling
+orqa enforce              # Check for errors
+orqa enforce --fix        # Auto-fix what can be fixed (e.g. missing inverses), then re-check
+orqa enforce --json       # JSON output for tooling
 ```
 
 This checks: relationship targets exist, inverses are present, verbs match from/to type constraints, required frontmatter fields are present, status values are canonical.
@@ -81,7 +81,7 @@ orqa plugin create sidecar                # Scaffold new plugin
 ## When to Use the CLI
 
 - Before creating artifacts: `orqa graph --stats` to see the current state
-- Before committing: `orqa validate --fix` to catch and auto-fix errors
+- Before committing: `orqa enforce --fix` to catch and auto-fix errors
 - When exploring the graph: `orqa graph` is faster than reading files
 - When managing plugins: `orqa plugin` for install/uninstall/browse
 - After plugin install: `orqa id check` to detect any ID collisions

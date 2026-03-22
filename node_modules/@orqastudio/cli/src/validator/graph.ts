@@ -88,20 +88,65 @@ function inferType(relPath: string, registry: TypeRegistryEntry[]): string {
 }
 
 /**
- * Infer artifact type from an artifact ID prefix using core.json.
+ * Build an ID prefix → type key map from plugin manifests.
+ * Scans plugins/ and connectors/ for orqa-plugin.json schemas.
+ */
+function buildPrefixMap(projectRoot: string): Map<string, string> {
+  const map = new Map<string, string>();
+
+  // First: anything from PLATFORM_CONFIG (may be empty now)
+  const platformAny = PLATFORM_CONFIG as unknown as Record<string, unknown>;
+  const platformTypes = platformAny["artifactTypes"] as Array<{ key: string; idPrefix: string }> | undefined;
+  if (platformTypes) {
+    for (const t of platformTypes) {
+      if (t.idPrefix) map.set(t.idPrefix, t.key);
+    }
+  }
+
+  // Then: merge from plugin manifests (plugins take precedence)
+  for (const container of ["plugins", "connectors"]) {
+    const containerDir = join(projectRoot, container);
+    let entries;
+    try { entries = readdirSync(containerDir, { withFileTypes: true }); } catch { continue; }
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules") continue;
+      try {
+        const raw = readFileSync(join(containerDir, entry.name, "orqa-plugin.json"), "utf-8");
+        const manifest = JSON.parse(raw) as Record<string, unknown>;
+        const provides = manifest["provides"] as Record<string, unknown> | undefined;
+        if (!provides) continue;
+        const schemas = provides["schemas"];
+        if (!Array.isArray(schemas)) continue;
+        for (const s of schemas) {
+          const schema = s as Record<string, unknown>;
+          const key = schema["key"] as string | undefined;
+          const prefix = schema["idPrefix"] as string | undefined;
+          if (key && prefix) map.set(prefix, key);
+        }
+      } catch { continue; }
+    }
+  }
+
+  return map;
+}
+
+/** Cached prefix map per project root. */
+let _prefixMapCache: { root: string; map: Map<string, string> } | null = null;
+
+/**
+ * Infer artifact type from an artifact ID prefix using plugin manifests.
  * E.g. "DOC-036" → "doc", "KNOW-011" → "knowledge", "EPIC-001" → "epic".
  * Falls back to "unknown" if no match.
  */
-function inferTypeFromId(id: string): string {
-  const platformAny = PLATFORM_CONFIG as unknown as Record<string, unknown>;
-  const types = platformAny["artifactTypes"] as Array<{ key: string; idPrefix: string }> | undefined;
-  if (!types) return "unknown";
+function inferTypeFromId(id: string, projectRoot: string): string {
+  if (!_prefixMapCache || _prefixMapCache.root !== projectRoot) {
+    _prefixMapCache = { root: projectRoot, map: buildPrefixMap(projectRoot) };
+  }
 
   const prefix = id.match(/^([A-Z]+)-/)?.[1];
   if (!prefix) return "unknown";
 
-  const match = types.find((t) => t.idPrefix === prefix);
-  return match?.key ?? "unknown";
+  return _prefixMapCache.map.get(prefix) ?? "unknown";
 }
 
 /** Extract YAML frontmatter from markdown content. Returns [frontmatter, body]. */
@@ -312,7 +357,7 @@ export function buildGraph(config: IntegrityConfig): ArtifactGraph {
     // outside the project.json path registry (app/.orqa/, plugins/)
     let artifactType = inferType(relPath, typeRegistry);
     if (artifactType === "unknown") {
-      artifactType = inferTypeFromId(id);
+      artifactType = inferTypeFromId(id, config.projectRoot);
     }
 
     nodes.set(id, {

@@ -56,14 +56,14 @@ orqa graph --tree                          # Delivery hierarchy view
 orqa graph --json                          # JSON output
 ```
 
-### orqa validate — Integrity Check
+### orqa enforce — Integrity Check
 
 Validate the artifact graph for consistency.
 
 ```bash
-orqa validate                   # Check current directory
-orqa validate /path/to/project  # Check specific path
-orqa validate --json            # JSON output
+orqa enforce                   # Check current directory
+orqa enforce /path/to/project  # Check specific path
+orqa enforce --json            # JSON output
 ```
 
 Checks: relationship targets exist, inverses are present, verbs match from/to type constraints, required frontmatter fields are present, status values are canonical.
@@ -102,4 +102,4 @@ The CLI reads from:
 
 - `0` — success
 - `1` — error (invalid input, missing file, etc.)
-- Non-zero from `orqa validate` means integrity errors found
+- Non-zero from `orqa enforce` means integrity errors found

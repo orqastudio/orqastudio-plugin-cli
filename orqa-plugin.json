@@ -6,6 +6,9 @@
   "category": "tooling",
   "provides": {
     "schemas": [],
+    "enforcement_mechanisms": [
+      { "key": "tool", "description": "CLI tool enforcement (orqa enforce)", "strength": 6 }
+    ],
     "views": [],
     "widgets": [],
     "relationships": [],
@@ -41,13 +44,13 @@
     ],
     "cliTools": [
       {
-        "key": "orqa-validate",
-        "label": "Integrity Validator",
+        "key": "orqa-enforce",
+        "label": "Enforcement Engine",
         "icon": "shield-check",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
         "args": [
-          "validate"
+          "enforce"
         ],
         "category": "integrity"
       },

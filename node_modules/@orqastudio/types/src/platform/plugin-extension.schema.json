@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orqastudio.dev/schemas/plugin-extension.json",
+  "title": "Plugin Extension Types",
+  "description": "Schema for how plugins extend the OrqaStudio core type system. Defines provides.schemas, provides.relationships, and validation rules for plugin manifests.",
+
+  "$defs": {
+    "DecisionTreeBranch": {
+      "title": "DecisionTreeBranch",
+      "description": "A domain-specific branch contributed by a plugin to the agent decision tree. Branches extend the orchestrator and implementer reasoning protocols with domain context, helping agents form better search queries and classify work correctly.",
+      "type": "object",
+      "required": ["mode", "domain", "description", "search_context"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "The reasoning mode this branch applies to. Matches Step 1 classifications in the decision tree.",
+          "examples": ["implementation", "research", "planning", "review"]
+        },
+        "domain": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Unique domain key (lowercase, hyphenated). Used as the display label in the injected tree."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of when this domain applies. Shown inline in the decision tree injection."
+        },
+        "search_context": {
+          "type": "string",
+          "description": "Comma-separated keywords that help the agent form a targeted search_semantic query when working in this domain."
+        }
+      }
+    },
+
+    "PluginDecisionTree": {
+      "title": "PluginDecisionTree",
+      "description": "Decision tree extension contributed by a plugin. Each branch adds a domain-specific entry to the agent reasoning protocol injected on every UserPromptSubmit.",
+      "type": "object",
+      "required": ["branches"],
+      "additionalProperties": false,
+      "properties": {
+        "branches": {
+          "type": "array",
+          "description": "Domain branches to merge into the orchestrator and implementer decision trees.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/DecisionTreeBranch" }
+        }
+      }
+    },
+
+    "PluginArtifactSchema": {
+      "title": "PluginArtifactSchema",
+      "description": "An artifact type schema contributed by a plugin. Plugin schemas must declare key, label, icon, idPrefix, and frontmatter. They may use $ref to reference core types in core.json.",
+      "type": "object",
+      "required": ["key", "label", "icon", "defaultPath", "idPrefix", "frontmatter"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Unique artifact type key (lowercase, hyphenated). MUST NOT collide with core artifact type keys."
+        },
+        "label": {
+          "type": "string",
+          "description": "Singular display label."
+        },
+        "plural": {
+          "type": ["string", "null"],
+          "description": "Plural display label. Defaults to label + 's' if omitted."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Lucide icon name."
+        },
+        "defaultPath": {
+          "type": "string",
+          "description": "Default relative path within .orqa/ for storing artifacts of this type."
+        },
+        "idPrefix": {
+          "type": "string",
+          "description": "ID prefix for auto-generated IDs (e.g. 'EPIC', 'TASK'). MUST NOT collide with core ID prefixes."
+        },
+        "frontmatter": {
+          "type": "object",
+          "required": ["required", "optional"],
+          "additionalProperties": false,
+          "description": "Frontmatter field declarations for this artifact type.",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields that must be present in every artifact of this type."
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Fields that may optionally appear in artifacts of this type."
+            }
+          }
+        },
+        "statusTransitions": {
+          "type": ["object", "null"],
+          "description": "Status transition rules specific to this artifact type.",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "PluginRelationshipExtension": {
+      "title": "PluginRelationshipExtension",
+      "description": "A relationship type contributed by a plugin. Relationships MUST include key, inverse, from, to, and semantic to integrate correctly with the validation engine.",
+      "type": "object",
+      "required": ["key", "inverse", "label", "inverseLabel", "from", "to", "description", "semantic"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Relationship type key (lowercase, hyphenated). MUST NOT collide with core relationship keys."
+        },
+        "inverse": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Inverse relationship key. May be the same as key for symmetric relationships."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable label for the forward direction."
+        },
+        "inverseLabel": {
+          "type": "string",
+          "description": "Human-readable label for the inverse direction."
+        },
+        "from": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Artifact type keys that are valid sources for this relationship."
+        },
+        "to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Artifact type keys that are valid targets for this relationship."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation of what this relationship means."
+        },
+        "semantic": {
+          "type": "string",
+          "enum": ["foundation", "lineage", "governance", "knowledge-flow", "agency", "synchronisation", "dependency", "delivery"],
+          "description": "The semantic category this relationship belongs to. Determines how the validation engine treats it."
+        },
+        "constraints": {
+          "type": ["object", "null"],
+          "description": "Optional validation constraints for this relationship.",
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "type": ["boolean", "null"],
+              "description": "Whether artifacts of the 'from' types must have at least one of this relationship."
+            },
+            "minCount": {
+              "type": ["integer", "null"],
+              "minimum": 0,
+              "description": "Minimum number of this relationship required."
+            },
+            "maxCount": {
+              "type": ["integer", "null"],
+              "minimum": 1,
+              "description": "Maximum number of this relationship allowed."
+            },
+            "requireInverse": {
+              "type": ["boolean", "null"],
+              "description": "Whether the inverse edge must also be present."
+            }
+          }
+        }
+      }
+    },
+
+    "PluginManifestProvides": {
+      "title": "PluginManifestProvides",
+      "description": "The 'provides' block of a plugin manifest. Declares all capabilities the plugin registers with the app at install time.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemas": {
+          "type": "array",
+          "description": "Artifact type schemas this plugin introduces. Each schema extends the core type system.",
+          "items": { "$ref": "#/$defs/PluginArtifactSchema" }
+        },
+        "relationships": {
+          "type": "array",
+          "description": "Relationship types this plugin introduces. Each relationship extends the core relationship vocabulary.",
+          "items": { "$ref": "#/$defs/PluginRelationshipExtension" }
+        },
+        "knowledge": {
+          "type": "array",
+          "description": "Knowledge artifact paths contributed by this plugin.",
+          "items": { "type": "string" }
+        },
+        "agents": {
+          "type": "array",
+          "description": "Agent artifact paths contributed by this plugin.",
+          "items": { "type": "string" }
+        },
+        "views": {
+          "type": "array",
+          "description": "Custom view registrations contributed by this plugin.",
+          "items": {
+            "type": "object",
+            "required": ["key", "label", "icon"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+              "label": { "type": "string" },
+              "icon": { "type": "string" }
+            }
+          }
+        },
+        "widgets": {
+          "type": "array",
+          "description": "Dashboard widget registrations contributed by this plugin.",
+          "items": {
+            "type": "object",
+            "required": ["key", "label", "icon"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+              "label": { "type": "string" },
+              "icon": { "type": "string" }
+            }
+          }
+        },
+        "hooks": {
+          "type": "array",
+          "description": "Hook registrations contributed by this plugin.",
+          "items": { "type": "string" }
+        },
+        "decision_tree": {
+          "$ref": "#/$defs/PluginDecisionTree",
+          "description": "Agent decision tree branches contributed by this plugin. Branches are merged at runtime into the orchestrator and implementer reasoning protocols injected on every UserPromptSubmit."
+        },
+        "lspServers": {
+          "type": "object",
+          "description": "LSP server registrations contributed by this plugin.",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command"],
+            "additionalProperties": true,
+            "properties": {
+              "command": { "type": "string" },
+              "args": { "type": "array", "items": { "type": "string" } },
+              "extensionToLanguage": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          }
+        },
+        "tools": {
+          "type": "object",
+          "description": "Development tool registrations contributed by this plugin.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Dependencies required by this plugin.",
+          "additionalProperties": true
+        },
+        "cliTools": {
+          "type": "array",
+          "description": "CLI tool registrations contributed by this plugin.",
+          "items": {}
+        },
+        "behavioral_rules": {
+          "type": "array",
+          "description": "Behavioral rules contributed by this plugin. Appended to BEHAVIORAL_RULES in the prompt-injector.",
+          "items": { "type": "string" }
+        },
+        "mode_templates": {
+          "type": "object",
+          "description": "Mode templates contributed by this plugin. Merged into MODE_TEMPLATES. Plugin keys must not collide with built-in mode keys.",
+          "additionalProperties": { "type": "string" }
+        },
+        "session_reminders": {
+          "type": "array",
+          "description": "Session state reminders contributed by this plugin. Appended to sessionConstant in the prompt-injector.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "PluginManifest": {
+      "title": "PluginManifest",
+      "description": "The full orqa-plugin.json manifest for an OrqaStudio plugin.",
+      "type": "object",
+      "required": ["name", "version", "provides"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "JSON Schema reference for editor autocompletion."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^@?[a-z0-9-]+(/[a-z0-9-]+)?$",
+          "description": "Package name. Scoped (@org/name) or unscoped (name)."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+          "description": "Semver version string."
+        },
+        "displayName": {
+          "type": ["string", "null"],
+          "description": "Human-readable name shown in the plugin manager UI."
+        },
+        "description": {
+          "type": ["string", "null"],
+          "description": "Short description of what the plugin does."
+        },
+        "author": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "url": { "type": ["string", "null"] },
+            "email": { "type": ["string", "null"] }
+          }
+        },
+        "license": {
+          "type": ["string", "null"],
+          "description": "SPDX license identifier."
+        },
+        "requires": {
+          "type": "array",
+          "description": "Plugin dependencies — names of plugins that must be loaded first.",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "category": {
+          "type": ["string", "null"],
+          "enum": ["thinking", "delivery", "governance", "connector", "tooling", "coding-standards", null],
+          "description": "Plugin category. The app requires at least one plugin from each of: thinking, delivery, governance."
+        },
+        "compatibility": {
+          "type": ["object", "null"],
+          "description": "Minimum versions required for this plugin to function.",
+          "additionalProperties": false,
+          "properties": {
+            "app": { "type": ["string", "null"] },
+            "sdk": { "type": ["string", "null"] },
+            "types": { "type": ["string", "null"] }
+          }
+        },
+        "provides": {
+          "$ref": "#/$defs/PluginManifestProvides"
+        },
+        "semantics": {
+          "type": "object",
+          "description": "Semantic category definitions contributed by this plugin. Merged with platform semantics at runtime.",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["description", "keys"],
+            "additionalProperties": false,
+            "properties": {
+              "description": { "type": "string" },
+              "keys": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "artifactLinks": {
+          "type": "object",
+          "description": "Artifact link display configuration contributed by this plugin.",
+          "additionalProperties": true
+        }
+      }
+    },
+
+    "PluginInstallValidationResult": {
+      "title": "PluginInstallValidationResult",
+      "description": "Result of validating a plugin manifest at install time.",
+      "type": "object",
+      "required": ["valid", "errors", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "valid": {
+          "type": "boolean",
+          "description": "Whether the plugin manifest passed all validation checks."
+        },
+        "errors": {
+          "type": "array",
+          "description": "Blocking validation errors that must be resolved before installation.",
+          "items": { "type": "string" }
+        },
+        "warnings": {
+          "type": "array",
+          "description": "Non-blocking warnings about the plugin manifest.",
+          "items": { "type": "string" }
+        },
+        "key_collisions": {
+          "type": "array",
+          "description": "Schema or relationship keys that conflict with existing definitions.",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+
+  "anyOf": [
+    { "$ref": "#/$defs/PluginManifest" },
+    { "$ref": "#/$defs/PluginArtifactSchema" },
+    { "$ref": "#/$defs/PluginRelationshipExtension" },
+    { "$ref": "#/$defs/PluginManifestProvides" },
+    { "$ref": "#/$defs/PluginInstallValidationResult" }
+  ]
+}
