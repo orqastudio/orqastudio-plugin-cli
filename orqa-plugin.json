@@ -10,13 +10,34 @@
     "widgets": [],
     "relationships": [],
     "knowledge": [
-      { "key": "cli-usage", "id": "KNOW-3198c8fb", "label": "CLI Usage" },
-      { "key": "version-management", "id": "KNOW-7b5c1bda", "label": "Version Management" },
-      { "key": "plugin-management", "id": "KNOW-9e1a2f6a", "label": "Plugin Management" },
-      { "key": "dev-environment", "id": "KNOW-6ee6c91e", "label": "Dev Environment" },
-      { "key": "self-maintenance", "id": "KNOW-6391d2a8", "label": "Self-Maintenance" },
-      { "key": "license-management", "id": "KNOW-9466a88a", "label": "License Management" },
-      { "key": "readme-standards", "id": "KNOW-4cc73a12", "label": "README Standards" }
+      {
+        "key": "3198c8fb",
+        "id": "KNOW-3198c8fb"
+      },
+      {
+        "key": "4cc73a12",
+        "id": "KNOW-4cc73a12"
+      },
+      {
+        "key": "6391d2a8",
+        "id": "KNOW-6391d2a8"
+      },
+      {
+        "key": "6ee6c91e",
+        "id": "KNOW-6ee6c91e"
+      },
+      {
+        "key": "7b5c1bda",
+        "id": "KNOW-7b5c1bda"
+      },
+      {
+        "key": "9466a88a",
+        "id": "KNOW-9466a88a"
+      },
+      {
+        "key": "9e1a2f6a",
+        "id": "KNOW-9e1a2f6a"
+      }
     ],
     "cliTools": [
       {
@@ -25,7 +46,9 @@
         "icon": "shield-check",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
-        "args": ["validate"],
+        "args": [
+          "validate"
+        ],
         "category": "integrity"
       },
       {
@@ -34,7 +57,11 @@
         "icon": "bar-chart-3",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
-        "args": ["graph", "--stats", "--json"],
+        "args": [
+          "graph",
+          "--stats",
+          "--json"
+        ],
         "category": "custom"
       },
       {
@@ -43,7 +70,10 @@
         "icon": "git-compare",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
-        "args": ["version", "check"],
+        "args": [
+          "version",
+          "check"
+        ],
         "category": "integrity"
       },
       {
@@ -52,7 +82,10 @@
         "icon": "scale",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
-        "args": ["repo", "license"],
+        "args": [
+          "repo",
+          "license"
+        ],
         "category": "integrity"
       },
       {
@@ -61,7 +94,10 @@
         "icon": "file-text",
         "runtime": "node",
         "entrypoint": "node_modules/@orqastudio/cli/dist/cli.js",
-        "args": ["repo", "readme"],
+        "args": [
+          "repo",
+          "readme"
+        ],
         "category": "integrity"
       }
     ],
