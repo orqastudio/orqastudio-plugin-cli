@@ -117,5 +117,22 @@
       }
     ]
   },
+  "content": {
+    "documentation": {
+      "source": "documentation",
+      "target": ".orqa/documentation"
+    },
+    "knowledge": {
+      "source": "knowledge",
+      "target": ".orqa/process/knowledge"
+    },
+    "rules": {
+      "source": "rules",
+      "target": ".orqa/process/rules"
+    }
+  },
+  "dependencies": {
+    "npm": ["@orqastudio/cli"]
+  },
   "role": "extension"
 }
